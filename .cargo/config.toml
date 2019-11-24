@@ -1,0 +1,7 @@
+[build]
+[target.armv7-unknown-linux-gnueabihf]
+linker = "arm-linux-gnueabihf-gcc"
+
+# Set default for cargo build
+# target = "armv7-unknown-linux-gnueabihf"
+# rustflags = ["-C", "linker=arm-linux-gnueabihf-gcc"]
