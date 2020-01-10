@@ -1,6 +1,6 @@
 [build]
 [target.armv7-unknown-linux-gnueabihf]
-linker = "arm-linux-gnueabihf-gcc"
+linker = "arm-none-linux-gnueabihf-gcc"
 
 # Set default for cargo build
 # target = "armv7-unknown-linux-gnueabihf"

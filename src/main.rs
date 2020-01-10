@@ -1,3 +1,5 @@
+use matrix_rhal as hal;
+
 fn main() {
-    println!("Hello, world");
+    println!("Hello, world {}", hal::x);
 }
