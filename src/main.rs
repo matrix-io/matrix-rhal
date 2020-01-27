@@ -1,5 +1,7 @@
 use matrix_rhal as hal;
+use std::sync::Mutex;
 
 fn main() {
-    println!("{}", hal::bus::X);
+    let mut bus = hal::bus::new();
+    bus.init();
 }
