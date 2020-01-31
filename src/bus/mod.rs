@@ -13,7 +13,7 @@ const K_MATRIX_CREATOR: i32 = 0x05C344E8;
 const K_MATRIX_VOICE: i32 = 0x6032BAD2;
 
 const WR_VALUE: i32 = 1200;
-const RD_VALUE: i32 = 1200;
+const RD_VALUE: i32 = 1201;
 
 // kernel bus
 pub struct Bus<'a> {
@@ -22,7 +22,7 @@ pub struct Bus<'a> {
     pub rx_buffer: [i32; 12288],
     pub tx_buffer: [i32; 12288],
     /// File descriptor for kernel abstraction.
-    pub regmap_fd: i32, // change type to https://doc.rust-lang.org/std/os/unix/io/type.RawFd.html
+    pub regmap_fd: std::os::unix::io::RawFd,
     // Empty because we don't need to pass any data (yet)
     pub usage: Mutex<()>,
 }
@@ -41,20 +41,29 @@ impl<'a> Bus<'a> {
         todo!();
     }
 
-    pub fn read(&mut self, add: u16, data: &mut u8, length: i32) -> bool {
+    pub fn read(&mut self, add: u16) {
         self.usage.lock();
 
         self.rx_buffer[0] = add as i32;
-        self.rx_buffer[1] = length;
+        self.rx_buffer[1] = 99;
 
-        // TODO: test
-        ioctl_read_bad!(read, RD_VALUE, i32);
+        // make read function
+        ioctl_read_bad!(read, RD_VALUE, [i32]);
+
+        // use read function
         unsafe {
-            let x = read(self.regmap_fd, &mut self.rx_buffer[2]);
-            println!("--> {:?}", x);
+            let x = read(self.regmap_fd, &mut self.rx_buffer).unwrap();
+            println!("{}-->{}", self.regmap_fd, x);
         }
 
-        todo!();
+        // check if array changes
+        for (i, &num) in self.rx_buffer.into_iter().enumerate() {
+            if num != 0 {
+                println!("{}----->{}", i, num);
+            }
+        }
+
+        // todo!();
     }
 
     /// Close the file descriptor that's communicating with the MATRIX Kernel's device file.
@@ -63,16 +72,9 @@ impl<'a> Bus<'a> {
     }
 
     pub fn read_uv(&mut self) {
-        let uv_data: f32;
-        let data_size = std::mem::size_of::<f32>() as i32;
-
-        self.read(
-            K_MCU_BASE_ADDRESS + (K_MEMORY_OFFSET_UV >> 1),
-            , // TODO: find cleaner way to extract data
-            &mut data_size,
-        );
-
-        todo!();
+        self.read(K_MCU_BASE_ADDRESS + (K_MEMORY_OFFSET_UV >> 1));
+        // self.read(K_CONF_BASE_ADDRESS);
+        // todo!();
     }
 }
 
