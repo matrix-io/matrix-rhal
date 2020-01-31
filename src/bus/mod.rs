@@ -52,8 +52,10 @@ impl<'a> Bus<'a> {
 
         // use read function
         unsafe {
-            let x = read(self.regmap_fd, &mut self.rx_buffer).unwrap();
-            println!("{}-->{}", self.regmap_fd, x);
+            read(self.regmap_fd, &mut self.rx_buffer).unwrap();
+            // println!("{}-->{}", self.regmap_fd, x);
+
+            // replicate the memcopy: https://github.com/matrix-io/matrix-creator-hal/blob/125b75a4256db56533a9227b5c80cbe2c96b11ab/cpp/driver/bus_kernel.cpp#L72
         }
 
         // check if array changes
@@ -72,8 +74,8 @@ impl<'a> Bus<'a> {
     }
 
     pub fn read_uv(&mut self) {
-        self.read(K_MCU_BASE_ADDRESS + (K_MEMORY_OFFSET_UV >> 1));
-        // self.read(K_CONF_BASE_ADDRESS);
+        // self.read(K_MCU_BASE_ADDRESS + (K_MEMORY_OFFSET_UV >> 1));
+        self.read(K_CONF_BASE_ADDRESS);
         // todo!();
     }
 }
