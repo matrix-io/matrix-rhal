@@ -14,3 +14,10 @@ pub const K_MEMORY_OFFSET_PRESSURE: u16 = 0x04;
 pub const K_MEMORY_OFFSET_HUMIDITY: u16 = 0x10;
 pub const K_MEMORY_OFFSET_IMU: u16 = 0x30;
 pub const K_MEMORY_OFFSET_MCU: u16 = 0x90;
+
+/* MATRIX device variables */
+pub const K_MATRIX_CREATOR_N_LEDS: i32 = 35;
+pub const K_MATRIX_VOICE_N_LEDS: i32 = 18;
+pub const K_MATRIX_CREATOR: i32 = 0x05C344E8;
+pub const K_MATRIX_VOICE: i32 = 0x6032BAD2;
+pub const kFPGAClock: u32 = 50000000; // Physical OSC = 50MHz
