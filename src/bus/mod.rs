@@ -27,5 +27,5 @@ pub fn test(bus: &mut kernel::Bus) {
         }
     }
 
-    println!("{}", 0x05C344E8);
+    // println!("{}", 0x05C344E8);
 }

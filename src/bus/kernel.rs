@@ -1,5 +1,5 @@
 use super::memory_map::*;
-use crate::Devices;
+use crate::Device;
 use nix::fcntl::{open, OFlag}; // https://linux.die.net/man/3/open
 use nix::sys::stat::Mode;
 use nix::unistd::close; // https://linux.die.net/man/2/close
@@ -57,15 +57,17 @@ impl<'a> Bus<'a> {
     }
 
     /// Return the
-    pub fn get_device_name(&mut self) -> Devices {
+    pub fn get_device_name(&mut self) -> Device {
         // store the bytes representing device type & version
         self.read(K_CONF_BASE_ADDRESS, 8);
 
-        let device_name = self.rx_buffer[1];
+        let device_name = self.rx_buffer[2];
+        // let device_version = self.rx_buffer[3];
+
         match device_name {
-            kMatrixCreator => Devices::Creator,
-            kMatrixVoice => Devices::Voice,
-            // _ => (),
+            K_MATRIX_CREATOR => Device::Creator,
+            K_MATRIX_VOICE => Device::Voice,
+            _ => panic!("COULD NOT FIND DEVICE"),
         }
     }
 }

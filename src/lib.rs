@@ -3,7 +3,7 @@ use std::sync::Mutex;
 
 /// The Different types of MATRIX Devices
 #[derive(Debug)]
-pub enum Devices {
+pub enum Device {
     Creator,
     Voice,
 }
