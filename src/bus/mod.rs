@@ -1,5 +1,6 @@
 pub mod kernel;
 pub mod memory_map;
+pub mod sensors;
 use crate::error::Error;
 use std::sync::Mutex;
 

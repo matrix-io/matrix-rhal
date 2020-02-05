@@ -1,4 +1,5 @@
 use super::memory_map::*;
+use super::sensors;
 use crate::{error::Error, Device};
 use nix::fcntl::{open, OFlag}; // https://linux.die.net/man/3/open
 use nix::ioctl_read_bad;
@@ -19,11 +20,12 @@ ioctl_read_bad!(read, RD_VALUE, [i32]);
 pub struct Bus<'a> {
     /// Path for the device file being used. This is what's used to communicate with the MATRIX Kernel.
     pub device_file: &'a str,
+    /// Read buffer passed into IOCTL read function.
     pub rx_buffer: [i32; 12288],
     pub tx_buffer: [i32; 12288],
     /// File descriptor for kernel abstraction.
     pub regmap_fd: std::os::unix::io::RawFd,
-    // Empty because we don't need to pass any data (yet).
+    // Empty because we don't need to pass any data.
     pub usage: Mutex<()>,
 }
 
@@ -42,6 +44,7 @@ impl<'a> Bus<'a> {
         todo!();
     }
 
+    /// Populate the Bus' rx_buffer with the requested data
     pub fn read(&mut self, add: u16, length: i32) {
         self.usage.lock();
 
@@ -59,17 +62,17 @@ impl<'a> Bus<'a> {
     }
 
     /// Return the type of MATRIX device being used.
-    pub fn get_device_name(&mut self) -> Device {
+    pub fn get_device_name(&mut self) -> Result<Device, Error> {
         // store the bytes representing device type & version
         self.read(K_CONF_BASE_ADDRESS, 8);
 
         let device_name = self.rx_buffer[2];
-        // let device_version = self.rx_buffer[3];
+        // let device_version = self.rx_buffer[3]; // currently unused
 
         match device_name {
-            K_MATRIX_CREATOR => Device::Creator,
-            K_MATRIX_VOICE => Device::Voice,
-            _ => panic!("COULD NOT FIND DEVICE"),
+            K_MATRIX_CREATOR => Ok(Device::Creator),
+            K_MATRIX_VOICE => Ok(Device::Voice),
+            _ => Err(Error::UnknownDevice),
         }
     }
 }
