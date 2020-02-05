@@ -52,7 +52,7 @@ impl<'a> Bus<'a> {
         self.rx_buffer[1] = length; // bytes
 
         unsafe {
-            read(self.regmap_fd, &mut self.rx_buffer).unwrap(); // todo: replicate the memcopy: https://github.com/matrix-io/matrix-creator-hal/blob/125b75a4256db56533a9227b5c80cbe2c96b11ab/cpp/driver/bus_kernel.cpp#L72
+            read(self.regmap_fd, &mut self.rx_buffer).unwrap();
         }
     }
 

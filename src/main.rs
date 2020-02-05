@@ -11,8 +11,9 @@ fn main() {
     loop {
         // let x = bus.read_uv();
         // let x = bus.read_pressue();
-        let x = bus.read_humidity();
-        println!("{:?}", x);
+        // let x = bus.read_humidity();
+        let x = bus.read_imu();
+        println!("{:#?}", x);
 
         thread::sleep(ten_millis);
     }
