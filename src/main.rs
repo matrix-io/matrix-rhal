@@ -7,7 +7,10 @@ fn main() {
     let ten_millis = time::Duration::from_millis(10);
     let now = time::Instant::now();
 
-    println!("{:?}", bus.device_name);
+    println!(
+        "The MATRIX {:?} has {} LEDs!",
+        bus.device_name, bus.device_leds
+    );
     // loop {
     //     // let x = bus.read_uv();
     //     // let x = bus.read_pressue();

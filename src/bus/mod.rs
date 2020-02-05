@@ -14,10 +14,18 @@ pub fn init<'a>() -> Result<kernel::Bus<'a>, Error> {
         regmap_fd: 0,
         usage: Mutex::new(()),
         device_name: Device::Unknown,
+        device_leds: 0,
     };
 
     bus.init()?;
+
     bus.device_name = bus.get_device_name()?;
+    bus.device_leds = match bus.device_name {
+        Device::Creator => 35,
+        Device::Voice => 18,
+        _ => panic!("Cannot determine number of LEDs on device (This is a hard-coded value)."),
+    };
+
     Ok(bus)
 }
 

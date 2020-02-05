@@ -28,6 +28,7 @@ pub struct Bus<'a> {
     /// Mutex to prevent collisions during read/write.
     pub usage: Mutex<()>,
     pub device_name: Device,
+    pub device_leds: u8,
 }
 
 // TODO: add Error handling
@@ -37,7 +38,6 @@ impl<'a> Bus<'a> {
         self.usage.lock()?;
 
         self.regmap_fd = open(self.device_file, OFlag::O_RDWR, Mode::empty())?;
-
         Ok(())
     }
 
@@ -52,6 +52,7 @@ impl<'a> Bus<'a> {
         self.rx_buffer[0] = add as i32;
         self.rx_buffer[1] = length; // bytes
 
+        // IOCTL read call
         unsafe {
             read(self.regmap_fd, &mut self.rx_buffer).unwrap();
         }
