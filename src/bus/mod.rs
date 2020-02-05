@@ -2,6 +2,7 @@ pub mod kernel;
 pub mod memory_map;
 pub mod sensors;
 use crate::error::Error;
+use crate::Device;
 use std::sync::Mutex;
 
 /// Create, initialize, and return a MATRIX Bus
@@ -12,9 +13,11 @@ pub fn init<'a>() -> Result<kernel::Bus<'a>, Error> {
         tx_buffer: [0; 12288],
         regmap_fd: 0,
         usage: Mutex::new(()),
+        device_name: Device::Unknown,
     };
 
-    bus.init()?; // TODO: add question mark
+    bus.init()?;
+    bus.device_name = bus.get_device_name()?;
     Ok(bus)
 }
 

@@ -25,8 +25,9 @@ pub struct Bus<'a> {
     pub tx_buffer: [i32; 12288],
     /// File descriptor for kernel abstraction.
     pub regmap_fd: std::os::unix::io::RawFd,
-    // Empty because we don't need to pass any data.
+    /// Mutex to prevent collisions during read/write.
     pub usage: Mutex<()>,
+    pub device_name: Device,
 }
 
 // TODO: add Error handling

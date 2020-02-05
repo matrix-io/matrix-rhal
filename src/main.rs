@@ -3,20 +3,20 @@ use std::{thread, time};
 
 fn main() {
     let mut bus = hal::bus::init().unwrap();
-    println!("Device name: {:?}", bus.get_device_name());
 
     let ten_millis = time::Duration::from_millis(10);
     let now = time::Instant::now();
 
-    loop {
-        // let x = bus.read_uv();
-        // let x = bus.read_pressue();
-        // let x = bus.read_humidity();
-        let x = bus.read_imu();
-        println!("{:#?}", x);
+    println!("{:?}", bus.device_name);
+    // loop {
+    //     // let x = bus.read_uv();
+    //     // let x = bus.read_pressue();
+    //     // let x = bus.read_humidity();
+    //     let x = bus.read_imu();
+    //     println!("{:#?}", x);
 
-        thread::sleep(ten_millis);
-    }
+    //     thread::sleep(ten_millis);
+    // }
 
     // hal::bus::test(&mut bus);
 }
