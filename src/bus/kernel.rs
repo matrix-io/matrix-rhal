@@ -1,9 +1,9 @@
 use super::memory_map::*;
-use crate::Device;
+use crate::{error::Error, Device};
 use nix::fcntl::{open, OFlag}; // https://linux.die.net/man/3/open
+use nix::ioctl_read_bad;
 use nix::sys::stat::Mode;
 use nix::unistd::close; // https://linux.die.net/man/2/close
-use nix::*;
 use std::sync::Mutex;
 
 pub const WR_VALUE: i32 = 1200;
@@ -30,10 +30,12 @@ pub struct Bus<'a> {
 // TODO: add Error handling
 impl<'a> Bus<'a> {
     /// Open the MATRIX Kernel's device file & retrieve file descriptor id.
-    pub fn init(&mut self) -> bool {
-        self.usage.lock().unwrap();
-        self.regmap_fd = open(self.device_file, OFlag::O_RDWR, Mode::empty()).unwrap();
-        true
+    pub fn init(&mut self) -> Result<(), Error> {
+        self.usage.lock()?;
+
+        self.regmap_fd = open(self.device_file, OFlag::O_RDWR, Mode::empty())?;
+
+        Ok(())
     }
 
     pub fn write(&self, add: u16, data: &u8, length: i32) -> bool {
@@ -56,7 +58,7 @@ impl<'a> Bus<'a> {
         close(self.regmap_fd).unwrap();
     }
 
-    /// Return the
+    /// Return the type of MATRIX device being used.
     pub fn get_device_name(&mut self) -> Device {
         // store the bytes representing device type & version
         self.read(K_CONF_BASE_ADDRESS, 8);

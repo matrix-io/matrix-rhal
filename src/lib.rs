@@ -1,5 +1,5 @@
 pub mod bus;
-use std::sync::Mutex;
+pub mod error;
 
 /// The Different types of MATRIX Devices
 #[derive(Debug)]

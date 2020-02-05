@@ -20,4 +20,4 @@ pub const K_MATRIX_CREATOR_N_LEDS: i32 = 35;
 pub const K_MATRIX_VOICE_N_LEDS: i32 = 18;
 pub const K_MATRIX_CREATOR: i32 = 0x05C344E8;
 pub const K_MATRIX_VOICE: i32 = 0x6032BAD2;
-pub const kFPGAClock: u32 = 50000000; // Physical OSC = 50MHz
+pub const K_FPGA_CLOCK: u32 = 50000000; // Physical OSC = 50MHz

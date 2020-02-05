@@ -1,9 +1,10 @@
 pub mod kernel;
 pub mod memory_map;
+use crate::error::Error;
 use std::sync::Mutex;
 
 /// Create, initialize, and return a MATRIX Bus
-pub fn init<'a>() -> kernel::Bus<'a> {
+pub fn init<'a>() -> Result<kernel::Bus<'a>, Error> {
     let mut bus = kernel::Bus {
         device_file: "/dev/matrixio_regmap",
         rx_buffer: [0; 12288],
@@ -12,10 +13,11 @@ pub fn init<'a>() -> kernel::Bus<'a> {
         usage: Mutex::new(()),
     };
 
-    bus.init();
-    bus
+    bus.init()?; // TODO: add question mark
+    Ok(bus)
 }
 
+/// REMOVE THIS LATER. THIS IS JUST TO TEST FUNCTIONS
 pub fn test(bus: &mut kernel::Bus) {
     // self.read(K_MCU_BASE_ADDRESS + (K_MEMORY_OFFSET_UV >> 1));
     bus.read(memory_map::K_CONF_BASE_ADDRESS, 8);
