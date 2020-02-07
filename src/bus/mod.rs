@@ -19,9 +19,9 @@ ioctl_read_bad!(read, RD_VALUE, [i32]);
 pub struct Bus {
     /// Path for the device file being used. This is what's used to communicate with the MATRIX Kernel.
     pub device_file: &'static str,
-    /// Read buffer passed into IOCTL read function.
+    /// Read buffer that's passed into the IOCTL read function.
     pub rx_buffer: [i32; 12288],
-    /// Write buffer passed into IOCTL read function.
+    /// Write buffer that's passed into the IOCTL read function.
     pub tx_buffer: [i32; 12288],
     /// File descriptor for kernel abstraction.
     pub regmap_fd: std::os::unix::io::RawFd,
