@@ -14,6 +14,7 @@ fn main() {
             let mut bus = mutex.lock().unwrap();
 
             bus.read_uv();
+            // bus.sensors.read.uv(); // TODO
             println!("{:?}", bus.sensors.uv.uv);
         });
     }

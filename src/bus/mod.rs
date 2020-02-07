@@ -71,6 +71,7 @@ impl Bus {
 
     /// Populate the Bus' rx_buffer with the requested data.
     /// Any data returned will start at the index 2 of the buffer.
+    // TODO: manually pass in a buffer. Avoid using rx_buffer
     pub fn read(&mut self, address: u16, bytes: i32) {
         self.usage.lock();
 
