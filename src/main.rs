@@ -1,25 +1,28 @@
 use matrix_rhal as hal;
+use std::sync::Arc;
+use std::sync::Mutex;
 use std::{thread, time};
 
 fn main() {
-    let mut bus = hal::bus::init().unwrap();
+    let bus = hal::Bus::init().unwrap();
+    let bus = Arc::new(Mutex::new(bus));
 
-    let ten_millis = time::Duration::from_millis(10);
-    let now = time::Instant::now();
+    for i in 0..30 {
+        let mutex = bus.clone();
 
-    println!(
-        "The MATRIX {:?} has {} LEDs!",
-        bus.device_name, bus.device_leds
-    );
-    // loop {
-    //     // let x = bus.read_uv();
-    //     // let x = bus.read_pressue();
-    //     // let x = bus.read_humidity();
-    //     let x = bus.read_imu();
-    //     println!("{:#?}", x);
+        thread::spawn(move || {
+            let mut bus = mutex.lock().unwrap();
 
-    //     thread::sleep(ten_millis);
-    // }
+            bus.read_uv();
+            println!("{:?}", bus.sensors.uv.uv);
+        });
+    }
 
-    // hal::bus::test(&mut bus);
+    // let ten_millis = time::Duration::from_millis(10);
+    // let now = time::Instant::now();
+
+    // println!(
+    //     "The MATRIX {:?} has {} LEDs!",
+    //     bus.device_name, bus.device_leds
+    // );
 }

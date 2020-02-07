@@ -21,3 +21,8 @@ pub const K_MATRIX_VOICE_N_LEDS: i32 = 18;
 pub const K_MATRIX_CREATOR: i32 = 0x05C344E8;
 pub const K_MATRIX_VOICE: i32 = 0x6032BAD2;
 pub const K_FPGA_CLOCK: u32 = 50000000; // Physical OSC = 50MHz
+
+/// IOCTL write request code.
+pub const WR_VALUE: i32 = 1200;
+/// IOCTL read request code.
+pub const RD_VALUE: i32 = 1201;
