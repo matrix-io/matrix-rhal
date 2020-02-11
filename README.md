@@ -1,3 +1,5 @@
+> TODO: polish README.md
+
 # MATRIX Rust Hardware Abstraction Layer
 
 MATRIX RHAL is the Rust implementation of MATRIX HAL. The goal is to center around calling the MATRIX Kernel Modules and have most/all of HAL rewritten in this layer.
@@ -16,3 +18,12 @@ All of this is expected to run on a Raspberry pi with the following installed:
 
 - MATRIX Init Package
 - MATRIX Kernel Modules
+- Rust installed
+
+# Installation
+
+```bash
+git clone https://github.com/Hermitter/matrix-rhal
+cd matrix-rhal
+cargo run
+```
