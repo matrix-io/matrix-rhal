@@ -1,9 +1,5 @@
 /// Number of Bytes needed to represent UV data.
 pub const UV_BYTES: i32 = 4;
-#[derive(Debug, Default)]
-pub struct Uv {
-    pub uv: f32,
-}
 
 /// Number of Bytes needed to represent Pressure data.
 pub const PRESSURE_BYTES: i32 = 12;
