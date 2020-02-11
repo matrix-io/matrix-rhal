@@ -4,10 +4,10 @@ mod sensors;
 
 pub use bus::Bus;
 pub use sensors::Sensors;
-// pub use sensors::Sensors;
 
 /// The Different types of MATRIX Devices
 #[derive(Debug, PartialEq)]
+#[non_exhaustive]
 pub enum Device {
     /// MATRIX Creator.
     Creator,

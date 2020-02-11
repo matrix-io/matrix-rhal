@@ -4,25 +4,22 @@ use crate::Bus;
 mod data;
 use data::*;
 
-// pub trait Read {
-//     fn read(&mut self) -> Result<(), Error>;
-// }
-
-#[derive(Debug, Default)]
-pub struct Sensors {
+pub struct Sensors<'a> {
     pub uv: Uv,
     pub imu: Imu,
     pub humidity: Humidity,
     pub pressure: Pressure,
+    pub bus: &'a Bus,
 }
 
-impl Sensors {
-    pub fn new() -> Sensors {
+impl<'a> Sensors<'a> {
+    pub fn new(bus: &Bus) -> Sensors {
         Sensors {
             uv: Uv::default(),
             imu: Imu::default(),
             humidity: Humidity::default(),
             pressure: Pressure::default(),
+            bus,
         }
     }
 }
@@ -30,62 +27,100 @@ impl Sensors {
 // Reading function for each sensor.
 // Each value in a sensor is 4 bytes(f32).
 // The length for bus.read is determined by (# of sensor properties)*4.
-impl Bus {
+impl<'a> Sensors<'a> {
+    /// Updates the Uv struct in Sensors with new values.
     pub fn read_uv(&mut self) {
-        self.read(K_MCU_BASE_ADDRESS + (K_MEMORY_OFFSET_UV >> 1), UV_BYTES);
-        self.sensors.uv.uv = self.rx_buffer[2] as f32 / 1000.0
+        // create read buffer
+        const BUFFER_LENGTH: usize = get_buffer_length(UV_BYTES);
+        let mut data: [i32; BUFFER_LENGTH] = [0; BUFFER_LENGTH];
+
+        // populate buffer
+        self.bus.read(
+            fpga_address::MCU + (mcu_offset::UV >> 1),
+            &mut data,
+            UV_BYTES,
+        );
+
+        // update UV value
+        self.uv.uv = data[2] as f32 / 1000.0;
     }
 
-    // pub fn read_pressue(&mut self) -> Pressure {
-    //     self.read(
-    //         K_MCU_BASE_ADDRESS + (K_MEMORY_OFFSET_PRESSURE >> 1),
-    //         PRESSURE_BYTES,
-    //     );
+    /// Updates the Pressure struct in Sensors with new values.
+    pub fn read_pressure(&mut self) {
+        // create read buffer
+        const BUFFER_LENGTH: usize = get_buffer_length(PRESSURE_BYTES);
+        let mut data: [i32; BUFFER_LENGTH] = [0; BUFFER_LENGTH];
 
-    //     Pressure {
-    //         pressure: self.rx_buffer[3] as f32 / 1000.0,
-    //         altitude: self.rx_buffer[2] as f32 / 1000.0,
-    //         temperature: self.rx_buffer[4] as f32 / 1000.0,
-    //     }
-    // }
+        // populate buffer
+        self.bus.read(
+            fpga_address::MCU + (mcu_offset::PRESSURE >> 1),
+            &mut data,
+            PRESSURE_BYTES,
+        );
 
-    // pub fn read_humidity(&mut self) -> Humidity {
-    //     // store the bytes representing humidity values
-    //     self.read(
-    //         K_MCU_BASE_ADDRESS + (K_MEMORY_OFFSET_HUMIDITY >> 1),
-    //         HUMIDITY_BYTES,
-    //     );
+        // update Pressure values
+        self.pressure.pressure = data[3] as f32 / 1000.0;
+        self.pressure.altitude = data[2] as f32 / 1000.0;
+        self.pressure.temperature = data[4] as f32 / 1000.0;
+    }
 
-    //     Humidity {
-    //         humidity: self.rx_buffer[2] as f32 / 1000.0,
-    //         temperature: self.rx_buffer[3] as f32 / 1000.0,
-    //     }
-    // }
+    /// Updates the Humidity struct in Sensors with new values.
+    pub fn read_humidity(&mut self) {
+        // create read buffer
+        const BUFFER_LENGTH: usize = get_buffer_length(HUMIDITY_BYTES);
+        let mut data: [i32; BUFFER_LENGTH] = [0; BUFFER_LENGTH];
 
-    // pub fn read_imu(&mut self) -> Imu {
-    //     self.read(K_MCU_BASE_ADDRESS + (K_MEMORY_OFFSET_IMU >> 1), IMU_BYTES);
+        // populate buffer
+        self.bus.read(
+            fpga_address::MCU + (mcu_offset::HUMIDITY >> 1),
+            &mut data,
+            HUMIDITY_BYTES,
+        );
 
-    //     // TODO: test if values are properly assigned
-    //     Imu {
-    //         accel_x: self.rx_buffer[2] as f32 / 1000.0,
-    //         accel_y: self.rx_buffer[3] as f32 / 1000.0,
-    //         accel_z: self.rx_buffer[4] as f32 / 1000.0,
+        // update humidity values
+        self.humidity.humidity = data[2] as f32 / 1000.0;
+        self.humidity.temperature = data[3] as f32 / 1000.0;
+    }
 
-    //         gyro_x: self.rx_buffer[5] as f32 / 1000.0,
-    //         gyro_y: self.rx_buffer[6] as f32 / 1000.0,
-    //         gyro_z: self.rx_buffer[7] as f32 / 1000.0,
+    /// Updates the Imu struct in Sensors with new values.
+    pub fn read_imu(&mut self) {
+        // create read buffer
+        const BUFFER_LENGTH: usize = get_buffer_length(IMU_BYTES);
+        let mut data: [i32; BUFFER_LENGTH] = [0; BUFFER_LENGTH];
 
-    //         mag_x: self.rx_buffer[8] as f32 / 1000.0,
-    //         mag_y: self.rx_buffer[9] as f32 / 1000.0,
-    //         mag_z: self.rx_buffer[10] as f32 / 1000.0,
+        // populate read buffer
+        self.bus.read(
+            fpga_address::MCU + (mcu_offset::IMU >> 1),
+            &mut data,
+            IMU_BYTES,
+        );
 
-    //         mag_offset_x: self.rx_buffer[11] as f32 / 1000.0,
-    //         mag_offset_y: self.rx_buffer[12] as f32 / 1000.0,
-    //         mag_offset_z: self.rx_buffer[13] as f32 / 1000.0,
+        // update IMU value
+        self.imu.accel_x = data[2] as f32 / 1000.0;
+        self.imu.accel_y = data[3] as f32 / 1000.0;
+        self.imu.accel_z = data[4] as f32 / 1000.0;
 
-    //         yaw: self.rx_buffer[13] as f32 / 1000.0,
-    //         pitch: self.rx_buffer[14] as f32 / 1000.0,
-    //         roll: self.rx_buffer[15] as f32 / 1000.0,
-    //     }
-    // }
+        self.imu.gyro_x = data[5] as f32 / 1000.0;
+        self.imu.gyro_y = data[6] as f32 / 1000.0;
+        self.imu.gyro_z = data[7] as f32 / 1000.0;
+
+        self.imu.mag_x = data[8] as f32 / 1000.0;
+        self.imu.mag_y = data[9] as f32 / 1000.0;
+        self.imu.mag_z = data[10] as f32 / 1000.0;
+
+        self.imu.mag_offset_x = data[11] as f32 / 1000.0;
+        self.imu.mag_offset_y = data[12] as f32 / 1000.0;
+        self.imu.mag_offset_z = data[13] as f32 / 1000.0;
+
+        self.imu.yaw = data[14] as f32 / 1000.0;
+        self.imu.pitch = data[15] as f32 / 1000.0;
+        self.imu.roll = data[16] as f32 / 1000.0;
+    }
+}
+
+/// Calculate the size a read buffer needs to be for a sensor.
+/// Since all sensor's values are a byte each, we can divide it by 4 to see how many values we have to store.
+/// 2 is added to make room for the FPGA address and the number of bytes to allocate in the IOCTL read call.
+const fn get_buffer_length(sensor_bytes: i32) -> usize {
+    (sensor_bytes / 4 + 2) as usize
 }
