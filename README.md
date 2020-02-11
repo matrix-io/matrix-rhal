@@ -1,22 +1,18 @@
-# Raspberry Pi Setup
+# MATRIX Rust Hardware Abstraction Layer
 
-## Install Rust
+MATRIX RHAL is the Rust implementation of MATRIX HAL. The goal is to center around calling the MATRIX Kernel Modules and have most/all of HAL rewritten in this layer.
 
-```bash
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-```
+# Roadmap
 
-## Reload Terminal Session
+This will be a bare minimum roadmap on what features are working. It's safe to assume that some of these will require further calibration and testing.
 
-```
-source ~/.profile
-```
+- [x] Device information
+- [x] Sensor Reading
+- [ ] Everloop
 
-## (Optional) Target Pi From Computer
+# Dependencies
 
-```bash
-rustup target add armv7-unknown-linux-gnueabihf
+All of this is expected to run on a Raspberry pi with the following installed:
 
-sudo dnf install arm-none-eabi-gcc-cs arm-none-eabi-gcc-cs-c++ arm-none-eabi-binutils-cs
-sudo dnf install qemu-user gcc-c++-arm-linux-gnu
-```
+- MATRIX Init Package
+- MATRIX Kernel Modules
