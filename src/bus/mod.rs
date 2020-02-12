@@ -2,16 +2,16 @@ pub mod memory_map;
 use crate::{error::Error, Device, Sensors};
 use memory_map::*;
 use nix::fcntl::{open, OFlag}; // https://linux.die.net/man/3/open
-use nix::ioctl_read_bad;
 use nix::sys::stat::Mode;
 use nix::unistd::close;
+use nix::{ioctl_read_bad, ioctl_write_ptr_bad};
 use std::sync::Mutex; // https://linux.die.net/man/2/close
 
 // Generate read() function
 ioctl_read_bad!(read, ioctl_code::READ, [i32]);
 
 // Generate write function
-// TODO:
+ioctl_write_ptr_bad!(write, ioctl_code::WRITE, [u8]);
 
 /// The bridge for talking to the MATRIX Kernel Modules.
 /// Most, if not all, MATRIX functionality requires this Bus to read and write data.
@@ -53,8 +53,28 @@ impl Bus {
         Ok(bus)
     }
 
-    pub fn write(&self, add: u16, data: &u8, length: i32) -> bool {
-        todo!();
+    /// Populate a buffer with the requested data.
+    /// `address` and `read_buffer` will be added to the 1 and 2 index of your buffer.
+    /// Any data added should start at index 2.
+    pub fn write(&self, address: u16, write_buffer: &mut [u8], bytes: i32) {
+        // TODO: FINISH WHERE YOU LEFT OFF
+        self.usage.lock().unwrap();
+
+        // IOCTL write call
+        unsafe {
+            let new_buffer = std::mem::transmute::<&mut [u8], &mut [i32]>(write_buffer);
+
+            // new_buffer[0] = address as i32; // stores the address we'll send information to
+            // new_buffer[1] = bytes; // and the amount of bytes our request needs.
+
+            let mut x = Vec::<i32>::new();
+            x.push(address as i32);
+            x.push(bytes);
+            x.extend(new_buffer.to_vec());
+            let y = std::mem::transmute::<&mut [i32], &mut [u8]>(&mut x);
+
+            write(self.regmap_fd, &y[..]).expect("error in IOCTL WRITE");
+        }
     }
 
     /// Populate a buffer with the requested data.
@@ -63,8 +83,9 @@ impl Bus {
     pub fn read(&self, address: u16, read_buffer: &mut [i32], bytes: i32) {
         self.usage.lock().unwrap();
 
-        // set request and bytes needed
+        // set the address we'll send information to
         read_buffer[0] = address as i32;
+        // amount of bytes to store
         read_buffer[1] = bytes;
 
         // IOCTL read call

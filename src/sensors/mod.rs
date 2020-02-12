@@ -4,15 +4,16 @@ use crate::Bus;
 mod data;
 use data::*;
 
+/// Communicates with the main sensors on the MATRIX Creator.
 pub struct Sensors<'a> {
     pub bus: &'a Bus,
 }
 
-// Reading function for each sensor.
+// Read function for each sensor.
 // Each value in a sensor is 4 bytes(f32).
 // The length for bus.read is determined by (# of sensor properties)*4.
 impl<'a> Sensors<'a> {
-    /// Creates a new instance of Sensors
+    /// Creates a new instance of Sensors.
     pub fn new(bus: &Bus) -> Sensors {
         Sensors { bus }
     }
