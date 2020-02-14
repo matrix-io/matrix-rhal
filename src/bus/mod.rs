@@ -5,7 +5,6 @@ use nix::fcntl::{open, OFlag}; // https://linux.die.net/man/3/open
 use nix::sys::stat::Mode;
 use nix::unistd::close;
 use nix::{ioctl_read_bad, ioctl_write_ptr_bad};
-use std::sync::Mutex; // https://linux.die.net/man/2/close
 
 // Generate read() function
 ioctl_read_bad!(ioctl_read, ioctl_code::READ, [u8]);
