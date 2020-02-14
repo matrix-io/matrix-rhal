@@ -13,6 +13,7 @@ impl<'a> Everloop<'a> {
         Everloop { bus }
     }
 
+    /// Map MATRIX LED colors to each RGBW passed in.
     pub fn set(&self, leds: &[Rgbw]) {
         // create write buffer
         let mut request = Vec::with_capacity(leds.len() + 2);
