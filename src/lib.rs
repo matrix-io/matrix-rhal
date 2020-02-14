@@ -5,6 +5,7 @@ mod sensors;
 
 pub use bus::Bus;
 pub use everloop::Everloop;
+pub use everloop::Rgbw;
 pub use sensors::Sensors;
 
 /// The Different types of MATRIX Devices

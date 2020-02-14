@@ -8,7 +8,13 @@ fn main() {
     let mut sensors = hal::Sensors::new(&bus);
 
     let mut everloop = hal::Everloop::new(&bus);
-    everloop.test();
+
+    // let mut leds = Vec::new();
+    // for _ in 0..bus.device_leds {
+    //     leds.push(hal::Rgbw::new(11, 0, 1, 0));
+    // }
+
+    // everloop.set(&leds);
 
     // loop {
     // println!("--> {:#?}", sensors.read_uv());
