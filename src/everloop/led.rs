@@ -1,5 +1,5 @@
 /// Colors that represent a single LED.
-#[derive(Debug)]
+#[derive(Clone, Copy, Debug)]
 pub struct Rgbw {
     pub r: u8,
     pub g: u8,
@@ -12,11 +12,14 @@ impl Rgbw {
     pub fn new(r: u8, g: u8, b: u8, w: u8) -> Rgbw {
         Rgbw { r, g, b, w }
     }
-}
 
-impl Copy for Rgbw {}
-impl Clone for Rgbw {
-    fn clone(&self) -> Rgbw {
-        *self
+    /// An RGBW instance with all values at 0.
+    pub fn black() -> Self {
+        Self::new(0, 0, 0, 0)
+    }
+
+    /// An RGBW instance with all values maxed out.
+    pub fn white() -> Self {
+        Self::new(255, 255, 255, 255)
     }
 }

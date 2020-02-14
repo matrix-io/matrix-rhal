@@ -24,8 +24,6 @@ pub struct Bus {
     pub device_name: Device,
     /// Number of LEDS on the MATRIX device.
     pub device_leds: u8,
-    /// Read/Write lock for IOCTL calls.
-    pub usage: Mutex<()>,
 }
 
 impl Bus {
@@ -36,7 +34,6 @@ impl Bus {
             regmap_fd: 0,
             device_name: Device::Unknown,
             device_leds: 0,
-            usage: Mutex::new(()),
         };
 
         // open the file descriptor to communicate with the MATRIX kernel
@@ -57,8 +54,6 @@ impl Bus {
     /// `address` and `read_buffer` will be added to the 1 and 2 index of your buffer.
     /// Any data added should start at index 2.
     pub fn write(&self, write_buffer: &mut [u8]) {
-        self.usage.lock().unwrap();
-
         unsafe {
             // TODO: error handling
             ioctl_write(self.regmap_fd, write_buffer).expect("error in IOCTL WRITE");
@@ -69,8 +64,6 @@ impl Bus {
     /// `address` and `read_buffer` will be added to the 1 and 2 index of your buffer.
     /// Any data returned will start at the index 2.
     pub fn read(&self, read_buffer: &mut [u8]) {
-        self.usage.lock().unwrap();
-
         unsafe {
             // TODO: error handling
             ioctl_read(self.regmap_fd, read_buffer).expect("error in IOCTL READ");

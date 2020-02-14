@@ -8,12 +8,12 @@ pub struct Everloop<'a> {
 }
 
 impl<'a> Everloop<'a> {
-    /// Return an instance of Everloop
+    /// Return an instance of Everloop. This represents the ring of LEDS on a MATRIX device.
     pub fn new(bus: &Bus) -> Everloop {
         Everloop { bus }
     }
 
-    pub fn set(&self, leds: &Vec<Rgbw>) {
+    pub fn set(&self, leds: &[Rgbw]) {
         // create write buffer
         let mut request = Vec::with_capacity(leds.len() + 2);
         // everloop address
