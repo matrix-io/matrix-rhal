@@ -8,17 +8,21 @@ fn main() {
     let mut sensors = hal::Sensors::new(&bus);
     let mut everloop = hal::Everloop::new(&bus);
 
-    everloop.set_all(hal::Rgbw::black());
+    everloop.set_all(hal::Rgbw::new(0, 0, 0, 0));
 
-    // loop {
-    //     // println!("--> {:#?}", sensors.read_uv());
-    //     // println!("--> {:#?}", sensors.read_pressure());
-    //     // println!("--> {:#?}", sensors.read_humidity());
-    //     // println!("--> {:#?}", sensors.read_imu());
+    loop {
+        println!("--> {:#?}", sensors.read_uv());
+        println!("--> {:#?}", sensors.read_pressure());
+        println!("--> {:#?}", sensors.read_humidity());
+        println!("-->{:#?}", sensors.read_imu());
 
-    //     // delay
-    //     everloop.set(&leds);
-    //     let ten_millis = time::Duration::from_millis(10);
-    //     thread::sleep(ten_millis);
-    // }
+        // let x = sensors.read_imu();
+        // println!("yaw -> {}", x.yaw);
+        // println!("pitch -> {}", x.pitch);
+        // println!("roll -> {}", x.roll);
+
+        // delay
+        let ten_millis = time::Duration::from_millis(10);
+        thread::sleep(ten_millis);
+    }
 }
