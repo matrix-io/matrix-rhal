@@ -2,3 +2,4 @@
 **/*.rs.bk
 .cargo
 Makefile
+Cargo.lock
