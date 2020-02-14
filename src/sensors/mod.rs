@@ -105,9 +105,9 @@ impl<'a> Sensors<'a> {
             mag_offset_y: data[12] as f32,
             mag_offset_z: data[13] as f32,
 
-            yaw: data[14] as f32,
-            pitch: data[15] as f32,
-            roll: data[16] as f32,
+            yaw: unsafe { std::mem::transmute::<i32, f32>(data[14]) },
+            pitch: unsafe { std::mem::transmute::<i32, f32>(data[15]) },
+            roll: unsafe { std::mem::transmute::<i32, f32>(data[16]) },
         }
     }
 }
