@@ -97,13 +97,13 @@ impl<'a> Sensors<'a> {
             mag_y: data[9] as f32 / 1000.0,
             mag_z: data[10] as f32 / 1000.0,
 
-            mag_offset_x: data[11] as f32 / 1000.0,
-            mag_offset_y: data[12] as f32 / 1000.0,
-            mag_offset_z: data[13] as f32 / 1000.0,
+            mag_offset_x: data[11] as f32,
+            mag_offset_y: data[12] as f32,
+            mag_offset_z: data[13] as f32,
 
-            yaw: data[14] as f32 / 1000.0,
-            pitch: data[15] as f32 / 1000.0,
-            roll: data[16] as f32 / 1000.0,
+            yaw: data[14] as f32,
+            pitch: data[15] as f32,
+            roll: data[16] as f32,
         }
     }
 }
