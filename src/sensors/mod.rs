@@ -71,20 +71,18 @@ impl<'a> Sensors<'a> {
         }
     }
 
+    // TODO: fix incorrect values
     /// Return the latest IMU sensor values.
     pub fn read_imu(&self) -> Imu {
         // create read buffer
         const BUFFER_LENGTH: usize = get_buffer_length(IMU_BYTES);
         let mut data: [i32; BUFFER_LENGTH] = [0; BUFFER_LENGTH];
+        data[0] = (fpga_address::MCU + (mcu_offset::IMU >> 1)) as i32;
         data[1] = IMU_BYTES;
 
-        let mut test = unsafe { std::mem::transmute::<&mut [i32], &mut [u8]>(&mut data) };
-        let addr = u16::to_ne_bytes(fpga_address::MCU + (mcu_offset::IMU >> 1));
-        test[0] = addr[0];
-        test[1] = addr[1];
-
         // populate read buffer
-        self.bus.read(&mut test);
+        self.bus
+            .read(unsafe { std::mem::transmute::<&mut [i32], &mut [u8]>(&mut data) });
 
         Imu {
             accel_x: data[2] as f32 / 1000.0,

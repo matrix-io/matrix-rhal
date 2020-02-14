@@ -13,21 +13,17 @@ impl<'a> Everloop<'a> {
 
     pub fn test(&self) {
         let buffer_length = self.bus.device_leds * 4;
-        let mut image = Vec::<u8>::with_capacity(buffer_length as usize);
+        let mut image = Vec::new();
 
-        // space for address and buffer length / TODO: REMOVE
+        image.push(fpga_address::EVERLOOP as i32);
+        image.push(buffer_length as i32);
 
-        for _ in 0..35 {
-            image.push(0);
-            image.push(0);
-            image.push(1);
-            image.push(0);
+        for _ in 0..self.bus.device_leds {
+            image.push(unsafe { std::mem::transmute::<[u8; 4], i32>([0, 0, 0, 0]) });
+            //[r,g,b,w]
         }
 
         self.bus
-            .write(fpga_address::EVERLOOP, &mut image[..], buffer_length as i32);
-
-        // println!("{:?}", image);
-        // println!("---> {}", image[..].len());
+            .write(unsafe { std::mem::transmute::<&mut Vec<i32>, &mut Vec<u8>>(&mut image) });
     }
 }

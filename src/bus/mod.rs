@@ -56,24 +56,12 @@ impl Bus {
     /// Populate a buffer with the requested data.
     /// `address` and `read_buffer` will be added to the 1 and 2 index of your buffer.
     /// Any data added should start at index 2.
-    pub fn write(&self, address: u16, write_buffer: &mut [u8], bytes: i32) {
-        // TODO: FINISH WHERE YOU LEFT OFF
+    pub fn write(&self, write_buffer: &mut [u8]) {
         self.usage.lock().unwrap();
 
-        // IOCTL write call
         unsafe {
-            let new_buffer = std::mem::transmute::<&mut [u8], &mut [i32]>(write_buffer);
-
-            // new_buffer[0] = address as i32; // stores the address we'll send information to
-            // new_buffer[1] = bytes; // and the amount of bytes our request needs.
-
-            let mut x = Vec::<i32>::new();
-            x.push(address as i32);
-            x.push(bytes);
-            x.extend(new_buffer.to_vec());
-            let y = std::mem::transmute::<&mut [i32], &mut [u8]>(&mut x);
-
-            ioctl_write(self.regmap_fd, &y[..]).expect("error in IOCTL WRITE");
+            // TODO: error handling
+            ioctl_write(self.regmap_fd, write_buffer).expect("error in IOCTL WRITE");
         }
     }
 
@@ -83,9 +71,9 @@ impl Bus {
     pub fn read(&self, read_buffer: &mut [u8]) {
         self.usage.lock().unwrap();
 
-        // IOCTL read call
         unsafe {
-            ioctl_read(self.regmap_fd, read_buffer).unwrap();
+            // TODO: error handling
+            ioctl_read(self.regmap_fd, read_buffer).expect("error in IOCTL READ");
         }
     }
 
