@@ -1,12 +1,12 @@
 [package]
 name = "matrix_rhal"
-version = "0.1.0"
+version = "0.0.0"
 authors = ["Hermitter"]
 edition = "2018"
+exclude = ["Makefile"]
+description = "The Rust implementation of MATRIX HAL."
+license = "GPL-3.0"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [dependencies]
 nix = "0.16.1"
-
-[dev-dependencies]
-async-std = "1.5.0"

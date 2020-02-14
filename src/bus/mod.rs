@@ -2,16 +2,15 @@ pub mod memory_map;
 use crate::{error::Error, Device, Sensors};
 use memory_map::*;
 use nix::fcntl::{open, OFlag}; // https://linux.die.net/man/3/open
-use nix::ioctl_read_bad;
 use nix::sys::stat::Mode;
 use nix::unistd::close;
-use std::sync::Mutex; // https://linux.die.net/man/2/close
+use nix::{ioctl_read_bad, ioctl_write_ptr_bad};
 
 // Generate read() function
-ioctl_read_bad!(read, ioctl_code::READ, [i32]);
+ioctl_read_bad!(ioctl_read, ioctl_code::READ, [u8]);
 
 // Generate write function
-// TODO:
+ioctl_write_ptr_bad!(ioctl_write, ioctl_code::WRITE, [u8]);
 
 /// The bridge for talking to the MATRIX Kernel Modules.
 /// Most, if not all, MATRIX functionality requires this Bus to read and write data.
@@ -24,8 +23,6 @@ pub struct Bus {
     pub device_name: Device,
     /// Number of LEDS on the MATRIX device.
     pub device_leds: u8,
-    /// Read/Write lock for IOCTL calls.
-    pub usage: Mutex<()>,
 }
 
 impl Bus {
@@ -36,7 +33,6 @@ impl Bus {
             regmap_fd: 0,
             device_name: Device::Unknown,
             device_leds: 0,
-            usage: Mutex::new(()),
         };
 
         // open the file descriptor to communicate with the MATRIX kernel
@@ -53,23 +49,23 @@ impl Bus {
         Ok(bus)
     }
 
-    pub fn write(&self, add: u16, data: &u8, length: i32) -> bool {
-        todo!();
+    /// Populate a buffer with the requested data.
+    /// `address` and `read_buffer` will be added to the 1 and 2 index of your buffer.
+    /// Any data added should start at index 2.
+    pub fn write(&self, write_buffer: &mut [u8]) {
+        unsafe {
+            // TODO: error handling
+            ioctl_write(self.regmap_fd, write_buffer).expect("error in IOCTL WRITE");
+        }
     }
 
     /// Populate a buffer with the requested data.
     /// `address` and `read_buffer` will be added to the 1 and 2 index of your buffer.
     /// Any data returned will start at the index 2.
-    pub fn read(&self, address: u16, read_buffer: &mut [i32], bytes: i32) {
-        self.usage.lock().unwrap();
-
-        // set request and bytes needed
-        read_buffer[0] = address as i32;
-        read_buffer[1] = bytes;
-
-        // IOCTL read call
+    pub fn read(&self, read_buffer: &mut [u8]) {
         unsafe {
-            read(self.regmap_fd, read_buffer).unwrap();
+            // TODO: error handling
+            ioctl_read(self.regmap_fd, read_buffer).expect("error in IOCTL READ");
         }
     }
 
@@ -81,9 +77,11 @@ impl Bus {
     /// Return the type of MATRIX device being used.
     fn get_device_name(&self) -> Result<Device, Error> {
         let mut data: [i32; 4] = [0; 4];
+        data[0] = fpga_address::CONF as i32;
+        data[1] = 8; // bytes needed for results
 
         // store the bytes representing device type & version
-        self.read(fpga_address::CONF as u16, &mut data, 8);
+        self.read(unsafe { std::mem::transmute::<&mut [i32], &mut [u8]>(&mut data) });
 
         let device_name = data[2];
         // let device_version = self.rx_buffer[3]; // currently unused

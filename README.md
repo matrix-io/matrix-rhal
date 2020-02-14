@@ -10,7 +10,13 @@ This will be a bare minimum roadmap on what features are working. It's safe to a
 
 - [x] Device information
 - [x] Sensor Reading
-- [ ] Everloop
+  - [x] UV
+  - [x] Pressure
+  - [x] Humidity
+  - [x] IMU
+- [x] Everloop
+- GPIO [ ]
+- Microphone [ ]
 
 # Dependencies
 
