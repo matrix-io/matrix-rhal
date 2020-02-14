@@ -8,10 +8,10 @@ use nix::{ioctl_read_bad, ioctl_write_ptr_bad};
 use std::sync::Mutex; // https://linux.die.net/man/2/close
 
 // Generate read() function
-ioctl_read_bad!(read, ioctl_code::READ, [i32]);
+ioctl_read_bad!(ioctl_read, ioctl_code::READ, [u8]);
 
 // Generate write function
-ioctl_write_ptr_bad!(write, ioctl_code::WRITE, [u8]);
+ioctl_write_ptr_bad!(ioctl_write, ioctl_code::WRITE, [u8]);
 
 /// The bridge for talking to the MATRIX Kernel Modules.
 /// Most, if not all, MATRIX functionality requires this Bus to read and write data.
@@ -73,24 +73,19 @@ impl Bus {
             x.extend(new_buffer.to_vec());
             let y = std::mem::transmute::<&mut [i32], &mut [u8]>(&mut x);
 
-            write(self.regmap_fd, &y[..]).expect("error in IOCTL WRITE");
+            ioctl_write(self.regmap_fd, &y[..]).expect("error in IOCTL WRITE");
         }
     }
 
     /// Populate a buffer with the requested data.
     /// `address` and `read_buffer` will be added to the 1 and 2 index of your buffer.
     /// Any data returned will start at the index 2.
-    pub fn read(&self, address: u16, read_buffer: &mut [i32], bytes: i32) {
+    pub fn read(&self, read_buffer: &mut [u8]) {
         self.usage.lock().unwrap();
-
-        // set the address we'll send information to
-        read_buffer[0] = address as i32;
-        // amount of bytes to store
-        read_buffer[1] = bytes;
 
         // IOCTL read call
         unsafe {
-            read(self.regmap_fd, read_buffer).unwrap();
+            ioctl_read(self.regmap_fd, read_buffer).unwrap();
         }
     }
 
@@ -102,9 +97,11 @@ impl Bus {
     /// Return the type of MATRIX device being used.
     fn get_device_name(&self) -> Result<Device, Error> {
         let mut data: [i32; 4] = [0; 4];
+        data[0] = fpga_address::CONF as i32;
+        data[1] = 8; // bytes needed for results
 
         // store the bytes representing device type & version
-        self.read(fpga_address::CONF as u16, &mut data, 8);
+        self.read(unsafe { std::mem::transmute::<&mut [i32], &mut [u8]>(&mut data) });
 
         let device_name = data[2];
         // let device_version = self.rx_buffer[3]; // currently unused
