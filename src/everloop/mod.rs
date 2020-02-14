@@ -3,12 +3,13 @@ use crate::bus::memory_map::*;
 use crate::Bus;
 pub use led::Rgbw;
 
+/// Controls the ring of LEDS on a MATRIX device.
 pub struct Everloop<'a> {
     bus: &'a Bus,
 }
 
 impl<'a> Everloop<'a> {
-    /// Return an instance of Everloop. This represents the ring of LEDS on a MATRIX device.
+    /// Return an instance of Everloop.
     pub fn new(bus: &Bus) -> Everloop {
         Everloop { bus }
     }

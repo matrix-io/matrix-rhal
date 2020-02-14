@@ -14,7 +14,7 @@ fn main() {
         println!("--> {:#?}", sensors.read_uv());
         println!("--> {:#?}", sensors.read_pressure());
         println!("--> {:#?}", sensors.read_humidity());
-        println!("-->{:#?}", sensors.read_imu());
+        println!("--> {:#?}", sensors.read_imu());
 
         // let x = sensors.read_imu();
         // println!("yaw -> {}", x.yaw);

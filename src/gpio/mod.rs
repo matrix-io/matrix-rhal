@@ -1,6 +1,7 @@
 use crate::bus::memory_map;
 use crate::Bus;
 
+/// Controls the GPIO pins on a MATRIX device.
 pub struct Gpio<'a> {
     bus: &'a Bus,
 }
