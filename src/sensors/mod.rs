@@ -74,7 +74,6 @@ impl<'a> Sensors<'a> {
         }
     }
 
-    // TODO: fix incorrect values
     /// Return the latest IMU sensor values.
     pub fn read_imu(&self) -> Imu {
         // create read buffer
@@ -105,6 +104,7 @@ impl<'a> Sensors<'a> {
             mag_offset_y: data[12] as f32,
             mag_offset_z: data[13] as f32,
 
+            // These values are already floats so we just need to treat them as one.
             yaw: unsafe { std::mem::transmute::<i32, f32>(data[14]) },
             pitch: unsafe { std::mem::transmute::<i32, f32>(data[15]) },
             roll: unsafe { std::mem::transmute::<i32, f32>(data[16]) },
