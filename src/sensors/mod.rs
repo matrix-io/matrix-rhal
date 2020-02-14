@@ -23,6 +23,7 @@ impl<'a> Sensors<'a> {
         // create read buffer
         const BUFFER_LENGTH: usize = get_buffer_length(UV_BYTES);
         let mut data: [i32; BUFFER_LENGTH] = [0; BUFFER_LENGTH];
+
         data[0] = (fpga_address::MCU + (mcu_offset::UV >> 1)) as i32;
         data[1] = UV_BYTES;
 
@@ -39,6 +40,7 @@ impl<'a> Sensors<'a> {
         // create read buffer
         const BUFFER_LENGTH: usize = get_buffer_length(PRESSURE_BYTES);
         let mut data: [i32; BUFFER_LENGTH] = [0; BUFFER_LENGTH];
+
         data[0] = (fpga_address::MCU + (mcu_offset::PRESSURE >> 1)) as i32;
         data[1] = PRESSURE_BYTES;
 
@@ -58,6 +60,7 @@ impl<'a> Sensors<'a> {
         // create read buffer
         const BUFFER_LENGTH: usize = get_buffer_length(HUMIDITY_BYTES);
         let mut data: [i32; BUFFER_LENGTH] = [0; BUFFER_LENGTH];
+
         data[0] = (fpga_address::MCU + (mcu_offset::HUMIDITY >> 1)) as i32;
         data[1] = HUMIDITY_BYTES;
 
@@ -77,6 +80,7 @@ impl<'a> Sensors<'a> {
         // create read buffer
         const BUFFER_LENGTH: usize = get_buffer_length(IMU_BYTES);
         let mut data: [i32; BUFFER_LENGTH] = [0; BUFFER_LENGTH];
+
         data[0] = (fpga_address::MCU + (mcu_offset::IMU >> 1)) as i32;
         data[1] = IMU_BYTES;
 
