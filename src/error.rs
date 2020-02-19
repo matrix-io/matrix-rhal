@@ -10,7 +10,7 @@ pub enum Error {
     /// Could not initialize the MATRIX Bus.
     UnableToStartBus,
     /// The mutex for the Bus could not be grabbed.
-    PoisonedBusMutex,
+    PoisonedBusMutex, // currently unused
 }
 
 impl<'a> fmt::Display for Error {

@@ -6,13 +6,13 @@ use nix::sys::stat::Mode;
 use nix::unistd::close;
 use nix::{ioctl_read_bad, ioctl_write_ptr_bad};
 
-// Generate read() function
+// Generate ioctl_read() function
 ioctl_read_bad!(ioctl_read, ioctl_code::READ, [u8]);
 
-// Generate write function
+// Generate ioctl_write() function
 ioctl_write_ptr_bad!(ioctl_write, ioctl_code::WRITE, [u8]);
 
-/// The bridge for talking to the MATRIX Kernel Modules.
+/// Bridge for talking to the MATRIX Kernel Modules.
 /// Most, if not all, MATRIX functionality requires this Bus to read and write data.
 pub struct Bus {
     /// Path for the device file being used. This is what's used to communicate with the MATRIX Kernel.
