@@ -1,5 +1,3 @@
-> TODO: polish README.md
-
 # MATRIX Rust Hardware Abstraction Layer
 
 ![https://crates.io/crates/matrix_rhal](https://img.shields.io/badge/crates.io-v0.0.0-orange.svg?longCache=true)
