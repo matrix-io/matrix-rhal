@@ -1,4 +1,4 @@
-//! Error handling.
+/// Error handling.
 use std::{error::Error as StdError, fmt};
 
 #[derive(Debug)]
@@ -9,8 +9,10 @@ pub enum Error {
     UnknownDevice,
     /// Could not initialize the MATRIX Bus.
     UnableToStartBus,
-    /// The mutex for the Bus could not be grabbed.
-    PoisonedBusMutex, // currently unused
+    /// MATRIX Kernel modules have not been installed.
+    KernelModulesNotInstalled,
+    /// The mutex for the Bus could not be grabbed. (currently unused)
+    PoisonedBusMutex,
 }
 
 impl<'a> fmt::Display for Error {
@@ -19,6 +21,9 @@ impl<'a> fmt::Display for Error {
             Error::UnknownDevice => write!(f, "Unable to identify MATRIX device."),
             Error::UnableToStartBus => write!(f, "Could not start the MATRIX bus."),
             Error::PoisonedBusMutex => write!(f, "Mutex for MATRIX bus is unreachable."),
+            Error::KernelModulesNotInstalled => {
+                write!(f, "The MATRIX Kernel Modules have not been installed. In order to work, this library requires them!")
+            }
             _ => write!(f, "TODO: ADD ERROR DESCRIPTION!"),
         }
     }
