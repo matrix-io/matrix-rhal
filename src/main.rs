@@ -11,15 +11,27 @@ fn main() {
 
     everloop.set_all(hal::Rgbw::new(0, 0, 0, 0));
 
+    gpio.set_mode(0, hal::Mode::Input);
+    gpio.set_function(0, hal::Function::Digital);
+
+    gpio.set_mode(1, hal::Mode::Output);
+    gpio.set_function(1, hal::Function::Digital);
+    gpio.set_value(1, 1);
+
     loop {
-        println!("{:?}", gpio.get_values());
-        // test_gpio_get_value();
+        println!("{:?}", gpio.get_value(0));
+
+        // test_gpio_get_value(&gpio);
         // test_sensors(&sensors);
-        // delay(1);
+        delay(50);
     }
 }
 
 fn test_gpio_get_value(gpio: &hal::Gpio) {
+    for i in 0..16 {
+        gpio.set_mode(i, hal::Mode::Input);
+    }
+
     println!(
         "{} {} {} {} {} {} {} {} {} {} {} {} {} {} {} {}",
         gpio.get_value(0),
