@@ -3,58 +3,30 @@ use super::Gpio;
 use crate::bus::memory_map::*;
 
 impl<'a> Gpio<'a> {
-    /// Configure a pin to be used for Digital or PWM functions.
-    pub fn set_function(&self, pin: u8, function: Function) {
+    /// Configure a specific pin's mode, function, state, etc..
+    pub fn set_config<T>(&self, pin: u8, config: T)
+    where
+        T: EncodePinConfig,
+    {
         if pin > 15 {
             panic!("The MATRIX Voice/Creator GPIO pins are from 0-15");
         }
 
-        let function = match function {
-            Function::Digital => 0,
-            Function::Pwm => 1,
-        };
-
-        // bit operation to encode value
-        let mask = 1 << pin;
-        let function = function << pin | (0x0 & !mask);
-
-        self.pin_set(function, 2);
+        self.pin_set(config.encode(pin), config.fpga_address_offset());
     }
 
-    /// Configure pin to be Output or Input.
-    pub fn set_mode(&self, pin: u8, mode: Mode) {
-        if pin > 15 {
-            panic!("The MATRIX Voice/Creator GPIO pins are from 0-15");
+    /// Configure multiple pins' mode, function, state, etc..
+    pub fn set_configs<T>(&self, pins: &[u8], config: T)
+    where
+        T: EncodePinConfig,
+    {
+        for pin in pins.into_iter() {
+            if *pin > 15 {
+                panic!("The MATRIX Voice/Creator GPIO pins are from 0-15");
+            }
+
+            self.pin_set(config.encode(*pin), config.fpga_address_offset());
         }
-
-        let mode = match mode {
-            Mode::Input => 0,
-            Mode::Output => 1,
-        };
-
-        // bit operation to encode value
-        let mask = 1 << pin;
-        let mode = mode << pin | (0x0 & !mask);
-
-        self.pin_set(mode, 0);
-    }
-
-    /// Configure a pin to be in an ON or OFF state.
-    pub fn set_value(&self, pin: u8, state: State) {
-        if pin > 15 {
-            panic!("The MATRIX Voice/Creator GPIO pins are from 0-15");
-        }
-
-        let state = match state {
-            State::On => 1,
-            State::Off => 0,
-        };
-
-        // bit operation to encode value
-        let mask = 1 << pin;
-        let state = state << pin | (0x0 & !mask);
-
-        self.pin_set(state, 1);
     }
 
     /// Shortener to set pin configurations. Value is directly included in the bus' write buffer.
