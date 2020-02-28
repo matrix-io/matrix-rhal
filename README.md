@@ -16,7 +16,7 @@ This will be a bare minimum roadmap on what features are working. It's safe to a
   - [x] IMU
 - [x] Everloop
 - [x] GPIO
-  - [x]Digital Read/Write
+  - [x] Digital Read/Write
   - [ ] PWM Write
 - [ ] Microphone
 
