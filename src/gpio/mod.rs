@@ -1,5 +1,15 @@
-use crate::bus::memory_map;
+use crate::bus::memory_map::*;
 use crate::Bus;
+pub mod config;
+pub use config::*;
+mod get;
+mod set;
+
+// TODO: add the following constants
+// uint16_t mode_;
+// uint16_t value_;
+// uint16_t function_;
+// uint16_t prescaler_;
 
 /// Controls the GPIO pins on a MATRIX device.
 pub struct Gpio<'a> {
@@ -7,19 +17,8 @@ pub struct Gpio<'a> {
 }
 
 impl<'a> Gpio<'a> {
+    /// Returns an instance of GPIO.
     pub fn new(bus: &'a Bus) -> Gpio {
         Gpio { bus }
-    }
-
-    pub fn get_value(self, pin: u8) -> u8 {
-        let mask = 0x1 << pin;
-
-        // uint16_t value;
-        // bus_->Read(kGPIOBaseAddress + 1, &value);
-        // value = (value & mask) >> pin;
-
-        // return value;
-
-        0
     }
 }

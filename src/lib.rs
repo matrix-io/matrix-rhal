@@ -1,7 +1,7 @@
 mod bus;
 pub mod error;
 mod everloop;
-mod gpio;
+pub mod gpio;
 mod sensors;
 
 pub use bus::Bus;

@@ -1,5 +1,5 @@
 pub mod memory_map;
-use crate::{error::Error, Device, Sensors};
+use crate::{error::Error, Device};
 use memory_map::*;
 use nix::fcntl::{open, OFlag}; // https://linux.die.net/man/3/open
 use nix::sys::stat::Mode;

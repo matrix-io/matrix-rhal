@@ -15,7 +15,9 @@ This will be a bare minimum roadmap on what features are working. It's safe to a
   - [x] Humidity
   - [x] IMU
 - [x] Everloop
-- [ ] GPIO
+- [x] GPIO
+  - [x]Digital Read/Write
+  - [ ] PWM Write
 - [ ] Microphone
 
 # Dependencies
