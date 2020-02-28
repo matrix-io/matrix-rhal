@@ -9,3 +9,9 @@ pub enum Function {
     Digital,
     Pwm,
 }
+
+// Specifies if a pin will output a signal.
+pub enum State {
+    On,
+    Off,
+}
