@@ -1,3 +1,7 @@
+// TODOs For Tomorrow
+// TODO: Change all `generate_values` function to be fixed like `Mode`'s implementation.
+// TODO: Stop returning a tuple for generate values since the history is a global object in `Gpio`.
+
 use super::Gpio;
 
 pub trait PinConfig {
@@ -17,11 +21,11 @@ impl PinConfig for Mode {
             Mode::Output => 1,
         };
 
-        let mut history = *gpio.mode_history.lock().unwrap();
+        let mut history = gpio.mode_history.lock().unwrap();
         let mask = 1 << pin;
-        history = mode << pin | (history & !mask);
+        *history = mode << pin | (*history & !mask);
 
-        (history as u32, 0)
+        (*history as u32, 0)
     }
 }
 

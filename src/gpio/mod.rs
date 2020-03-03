@@ -9,13 +9,13 @@ mod set;
 #[derive(Debug)]
 pub struct Gpio<'a> {
     bus: &'a Bus,
-    /// History of each time a pin's mode was set.
+    /// Current setting of each pin's mode (binary representation).
     mode_history: Mutex<u16>,
-    /// History of each time a pin's state was set.
+    /// Current setting of each pin's state (binary representation).
     state_history: Mutex<u16>,
-    /// History of each time a pin's function was set.
+    /// Current setting of each pin's function (binary representation).
     function_history: Mutex<u16>,
-    /// History of each time a pin's prescaler was set.
+    /// Current setting of each pin's prescaler (binary representation).
     prescaler_history: Mutex<u16>,
 }
 
