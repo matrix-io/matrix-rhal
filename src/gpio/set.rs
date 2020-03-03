@@ -12,7 +12,7 @@ impl<'a> Gpio<'a> {
             panic!("The MATRIX Voice/Creator GPIO pins are from 0-15");
         }
 
-        self.pin_set(config.encode(pin), config.fpga_address_offset());
+        self.pin_set(config.encode(pin, self), config.fpga_address_offset());
     }
 
     /// Configure multiple pins' mode, function, state, etc..
@@ -20,16 +20,16 @@ impl<'a> Gpio<'a> {
     where
         T: EncodePinConfig,
     {
-        for pin in pins.into_iter() {
+        for pin in pins.iter() {
             if *pin > 15 {
                 panic!("The MATRIX Voice/Creator GPIO pins are from 0-15");
             }
 
-            self.pin_set(config.encode(*pin), config.fpga_address_offset());
+            self.pin_set(config.encode(*pin, self), config.fpga_address_offset());
         }
     }
 
-    /// Shortener to set pin configurations. Value is directly included in the bus' write buffer.
+    /// Shortener to set pin configurations. `value` is directly passed into the bus' write buffer.
     fn pin_set(&self, value: u32, address_offset: u16) {
         // create and populate write buffer
         let mut buffer: [u32; 3] = [0; 3];

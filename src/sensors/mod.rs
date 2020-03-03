@@ -4,6 +4,7 @@ mod data;
 use data::*;
 
 /// Communicates with the main sensors on the MATRIX Creator.
+#[derive(Debug)]
 pub struct Sensors<'a> {
     pub bus: &'a Bus,
 }

@@ -4,6 +4,7 @@ use crate::Bus;
 pub use led::Rgbw;
 
 /// Controls the ring of LEDS on a MATRIX device.
+#[derive(Debug)]
 pub struct Everloop<'a> {
     bus: &'a Bus,
 }
