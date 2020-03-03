@@ -6,30 +6,30 @@ impl<'a> Gpio<'a> {
     /// Configure a specific pin's mode, function, state, etc..
     pub fn set_config<T>(&self, pin: u8, config: T)
     where
-        T: EncodePinConfig,
+        T: PinConfig,
     {
         if pin > 15 {
             panic!("The MATRIX Voice/Creator GPIO pins are from 0-15");
         }
 
-        self.pin_set(config.encode(pin, self), config.fpga_address_offset());
+        // send pin config to matrix bus
+        let (value, fpga_address_offset) = config.generate_values(pin, self);
+        self.pin_set(value, fpga_address_offset);
     }
 
     /// Configure multiple pins' mode, function, state, etc..
     pub fn set_configs<T>(&self, pins: &[u8], config: T)
     where
-        T: EncodePinConfig,
+        T: PinConfig,
     {
         for pin in pins.iter() {
-            if *pin > 15 {
-                panic!("The MATRIX Voice/Creator GPIO pins are from 0-15");
-            }
-
-            self.pin_set(config.encode(*pin, self), config.fpga_address_offset());
+            // send pin config to matrix bus
+            let (value, fpga_address_offset) = config.generate_values(*pin, self);
+            self.pin_set(value, fpga_address_offset);
         }
     }
 
-    /// Shortener to set pin configurations. `value` is directly passed into the bus' write buffer.
+    /// Shortener to set pin configurations. `value` & `address_offset` are directly passed into the bus' write buffer.
     fn pin_set(&self, value: u32, address_offset: u16) {
         // create and populate write buffer
         let mut buffer: [u32; 3] = [0; 3];

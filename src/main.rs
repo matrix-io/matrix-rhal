@@ -13,18 +13,30 @@ fn main() {
     everloop.set_all(hal::Rgbw::new(0, 0, 0, 0));
     test_gpio_set_value(&gpio);
 
+    let mut toggle = 0;
     loop {
-        println!("{:?}", gpio.get_values());
+        println!("counter: {}, {:?}", toggle, gpio.get_values());
+
+        if toggle > 50 {
+            gpio.set_config(1, State::On);
+        } else if toggle < 50 {
+            gpio.set_config(1, State::Off);
+        }
+
+        if toggle > 100 {
+            toggle = 0
+        }
+
+        toggle += 2;
+
         // test_sensors(&sensors);
-        delay(50);
+        delay(100);
     }
 }
 
 fn test_gpio_set_value(gpio: &hal::Gpio) {
     // TODO: If pinA is configured before pinB and pinA position > pinB position, there are issues with State & Output config.
     gpio.set_configs(&[0, 1], Function::Digital);
-
-    gpio.set_config(1, State::On);
 
     gpio.set_config(1, Mode::Output);
     gpio.set_config(0, Mode::Input);
