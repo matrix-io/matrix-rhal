@@ -1,63 +1,41 @@
 use super::config::*;
 use super::Gpio;
 use crate::bus::memory_map::*;
+use crate::error::Error;
 
 impl<'a> Gpio<'a> {
-    /// Configure a pin to be used for Digital or PWM functions.
-    pub fn set_function(&self, pin: u8, function: Function) {
+    /// Configure a specific pin's mode, function, state, etc..
+    pub fn set_config<T>(&self, pin: u8, config: T) -> Result<(), Error>
+    where
+        T: PinConfig,
+    {
         if pin > 15 {
             panic!("The MATRIX Voice/Creator GPIO pins are from 0-15");
         }
 
-        let function = match function {
-            Function::Digital => 0,
-            Function::Pwm => 1,
-        };
+        // update and send pin config to matrix bus
+        let (value, fpga_address_offset) = config.update_pin_map(pin, self)?;
+        self.pin_set(value, fpga_address_offset);
 
-        // bit operation to encode value
-        let mask = 1 << pin;
-        let function = function << pin | (0x0 & !mask);
-
-        self.pin_set(function, 2);
+        Ok(())
     }
 
-    /// Configure pin to be Output or Input.
-    pub fn set_mode(&self, pin: u8, mode: Mode) {
-        if pin > 15 {
-            panic!("The MATRIX Voice/Creator GPIO pins are from 0-15");
+    // TODO: improve by to not have to call a mutex lock for every pin being set
+    /// Configure multiple pins' mode, function, state, etc..
+    pub fn set_configs<T>(&self, pins: &[u8], config: T) -> Result<(), Error>
+    where
+        T: PinConfig,
+    {
+        for pin in pins.iter() {
+            // update and send pin config to matrix bus
+            let (value, fpga_address_offset) = config.update_pin_map(*pin, self)?;
+            self.pin_set(value, fpga_address_offset);
         }
 
-        let mode = match mode {
-            Mode::Input => 0,
-            Mode::Output => 1,
-        };
-
-        // bit operation to encode value
-        let mask = 1 << pin;
-        let mode = mode << pin | (0x0 & !mask);
-
-        self.pin_set(mode, 0);
+        Ok(())
     }
 
-    /// Configure a pin to be in an ON or OFF state.
-    pub fn set_value(&self, pin: u8, state: State) {
-        if pin > 15 {
-            panic!("The MATRIX Voice/Creator GPIO pins are from 0-15");
-        }
-
-        let state = match state {
-            State::On => 1,
-            State::Off => 0,
-        };
-
-        // bit operation to encode value
-        let mask = 1 << pin;
-        let state = state << pin | (0x0 & !mask);
-
-        self.pin_set(state, 1);
-    }
-
-    /// Shortener to set pin configurations. Value is directly included in the bus' write buffer.
+    /// Shortener to set pin configurations. `value` & `address_offset` are directly passed into the bus' write buffer.
     fn pin_set(&self, value: u32, address_offset: u16) {
         // create and populate write buffer
         let mut buffer: [u32; 3] = [0; 3];

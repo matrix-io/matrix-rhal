@@ -14,29 +14,29 @@ fn main() {
     test_gpio_set_value(&gpio);
 
     loop {
-        test_gpio_get_value(&gpio);
-        // test_sensors(&sensors);
-        delay(50);
+        println!("{:?}", gpio.get_values());
+
+        delay(100);
     }
 }
 
 fn test_gpio_set_value(gpio: &hal::Gpio) {
+    // TODO: If pinA is configured before pinB and pinA position > pinB position, there are issues with State & Output config.
+    gpio.set_configs(&[0, 1], Function::Digital).unwrap();
+
+    gpio.set_config(1, Mode::Output).unwrap();
+    gpio.set_config(0, Mode::Input).unwrap();
+
+    gpio.set_config(1, State::On).unwrap();
+
     // set pin 0 to receive a signal
-    gpio.set_mode(0, Mode::Input);
-    gpio.set_function(0, Function::Digital);
+    // gpio.set_config(0, Mode::Input);
+    // gpio.set_config(0, Function::Digital);
 
-    // set pin 1 to output a signal
-    gpio.set_mode(1, Mode::Output);
-    gpio.set_function(1, Function::Digital);
-    gpio.set_value(1, State::On);
-}
-
-fn test_gpio_get_value(gpio: &hal::Gpio) {
-    for i in 0..16 {
-        // gpio.set_mode(i, Mode::Input);
-    }
-
-    println!("{:?}", gpio.get_values());
+    // // set pin 1 to output a signal
+    // gpio.set_config(1, Mode::Output);
+    // gpio.set_config(1, Function::Digital);
+    // gpio.set_config(1, State::On);
 }
 
 fn test_sensors(sensors: &hal::Sensors) {

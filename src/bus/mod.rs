@@ -14,6 +14,7 @@ ioctl_write_ptr_bad!(ioctl_write, ioctl_code::WRITE, [u8]);
 
 /// Bridge for talking to the MATRIX Kernel Modules.
 /// Most, if not all, MATRIX functionality requires this Bus to read and write data.
+#[derive(Debug)]
 pub struct Bus {
     /// Path for the device file being used. This is what's used to communicate with the MATRIX Kernel.
     pub device_file: &'static str,
