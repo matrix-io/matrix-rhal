@@ -4,7 +4,7 @@ use std::fmt;
 
 pub trait PinConfig {
     /// Returns a tuple with a number, binary representation of each pin config, and an FPGA address offset for the config being changed.
-    fn update_pin_map(&self, pin: u8, gpio: &Gpio) -> Result<(u32, u16), Error>;
+    fn update_pin_map(&self, pin: u8, gpio: &Gpio) -> Result<(u16, u16), Error>;
 }
 
 /// Specifies if a pin is being used for Output or Input signals.
@@ -14,14 +14,14 @@ pub enum Mode {
     Output = 1,
 }
 impl PinConfig for Mode {
-    fn update_pin_map(&self, pin: u8, gpio: &Gpio) -> Result<(u32, u16), Error> {
+    fn update_pin_map(&self, pin: u8, gpio: &Gpio) -> Result<(u16, u16), Error> {
         let mode = *self as u16;
         let mask = 1 << pin;
         let mut pin_map = gpio.mode_pin_map.lock()?;
 
         *pin_map = mode << pin | (*pin_map & !mask);
 
-        Ok((*pin_map as u32, 0))
+        Ok((*pin_map, 0))
     }
 }
 
@@ -33,14 +33,14 @@ pub enum State {
 }
 
 impl PinConfig for State {
-    fn update_pin_map(&self, pin: u8, gpio: &Gpio) -> Result<(u32, u16), Error> {
+    fn update_pin_map(&self, pin: u8, gpio: &Gpio) -> Result<(u16, u16), Error> {
         let state = *self as u16;
         let mask = 1 << pin;
         let mut pin_map = gpio.state_pin_map.lock()?;
 
         *pin_map = state << pin | (*pin_map & !mask);
 
-        Ok((*pin_map as u32, 1))
+        Ok((*pin_map, 1))
     }
 }
 
@@ -66,13 +66,13 @@ pub enum Function {
 }
 
 impl PinConfig for Function {
-    fn update_pin_map(&self, pin: u8, gpio: &Gpio) -> Result<(u32, u16), Error> {
+    fn update_pin_map(&self, pin: u8, gpio: &Gpio) -> Result<(u16, u16), Error> {
         let function = *self as u16;
         let mask = 1 << pin;
         let mut pin_map = gpio.function_pin_map.lock()?;
 
         *pin_map = function << pin | (*pin_map & !mask);
 
-        Ok((*pin_map as u32, 2))
+        Ok((*pin_map, 2))
     }
 }
