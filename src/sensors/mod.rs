@@ -1,5 +1,5 @@
 use crate::bus::memory_map::*;
-use crate::Bus;
+use crate::{Bus, Device};
 mod data;
 use data::*;
 
@@ -15,6 +15,10 @@ pub struct Sensors<'a> {
 impl<'a> Sensors<'a> {
     /// Creates a new instance of Sensors.
     pub fn new(bus: &Bus) -> Sensors {
+        if bus.device_name != Device::Creator {
+            panic!("Sensors are only available on the MATRIX Creator!")
+        }
+
         Sensors { bus }
     }
 
