@@ -10,14 +10,15 @@ fn main() {
     let everloop = hal::Everloop::new(&bus);
     let gpio = hal::Gpio::new(&bus);
 
-    everloop.set_all(hal::Rgbw::new(0, 0, 0, 0));
-    test_gpio_set_value(&gpio);
+    everloop.set_all(hal::Rgbw::black());
 
-    loop {
-        println!("{}", gpio.get_state(0) as u8 + 10);
+    // test_gpio_set_value(&gpio);
 
-        delay(100);
-    }
+    // loop {
+    //     println!("{:?}", gpio.get_states());
+
+    //     // delay(100);
+    // }
 }
 
 fn test_gpio_set_value(gpio: &hal::Gpio) {
