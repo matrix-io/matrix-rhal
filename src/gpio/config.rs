@@ -1,9 +1,6 @@
-// TODOs For Tomorrow
-// TODO: Change all `update_pin_map` function to be fixed like `Mode`'s implementation.
-// TODO: Stop returning a tuple for generate values since the history is a global object in `Gpio`.
-
 use super::Gpio;
 use crate::error::Error;
+use std::fmt;
 
 pub trait PinConfig {
     /// Returns a tuple with a number, binary representation of each pin config, and an FPGA address offset for the config being changed.
@@ -11,7 +8,7 @@ pub trait PinConfig {
 }
 
 /// Specifies if a pin is being used for Output or Input signals.
-#[derive(Copy, Clone)]
+#[derive(Debug, Copy, Clone)]
 pub enum Mode {
     Input = 0,
     Output = 1,
@@ -24,12 +21,11 @@ impl PinConfig for Mode {
 
         *pin_map = mode << pin | (*pin_map & !mask);
 
-        println!("mode: {:b}", *pin_map);
         Ok((*pin_map as u32, 0))
     }
 }
 
-// Specifies the current signal state of a pin.
+/// Specifies if the current state of a pin is `Off`(0) or `On`(1).
 #[derive(Copy, Clone)]
 pub enum State {
     Off = 0,
@@ -44,13 +40,26 @@ impl PinConfig for State {
 
         *pin_map = state << pin | (*pin_map & !mask);
 
-        println!("state: {:b}", *pin_map);
         Ok((*pin_map as u32, 1))
     }
 }
 
+impl fmt::Display for State {
+    // Convert State::On and State::Off to 1 and 0 respectively
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", *self as u8)
+    }
+}
+
+impl fmt::Debug for State {
+    // Convert State::On and State::Off to 1 and 0 respectively
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", *self as u8)
+    }
+}
+
 /// Specifies which function a pin is using.
-#[derive(Copy, Clone)]
+#[derive(Debug, Copy, Clone)]
 pub enum Function {
     Digital = 0,
     Pwm = 1,
@@ -64,7 +73,6 @@ impl PinConfig for Function {
 
         *pin_map = function << pin | (*pin_map & !mask);
 
-        println!("function: {:b}", *pin_map);
         Ok((*pin_map as u32, 2))
     }
 }

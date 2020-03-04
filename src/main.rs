@@ -14,7 +14,7 @@ fn main() {
     test_gpio_set_value(&gpio);
 
     loop {
-        println!("{:?}", gpio.get_values());
+        println!("{}", gpio.get_state(0) as u8 + 10);
 
         delay(100);
     }
