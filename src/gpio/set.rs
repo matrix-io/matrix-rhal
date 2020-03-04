@@ -1,10 +1,11 @@
 use super::config::*;
 use super::Gpio;
 use crate::bus::memory_map::*;
+use crate::error::Error;
 
 impl<'a> Gpio<'a> {
     /// Configure a specific pin's mode, function, state, etc..
-    pub fn set_config<T>(&self, pin: u8, config: T)
+    pub fn set_config<T>(&self, pin: u8, config: T) -> Result<(), Error>
     where
         T: PinConfig,
     {
@@ -12,21 +13,26 @@ impl<'a> Gpio<'a> {
             panic!("The MATRIX Voice/Creator GPIO pins are from 0-15");
         }
 
-        // send pin config to matrix bus
-        let (value, fpga_address_offset) = config.generate_values(pin, self);
+        // update and send pin config to matrix bus
+        let (value, fpga_address_offset) = config.update_pin_map(pin, self)?;
         self.pin_set(value, fpga_address_offset);
+
+        Ok(())
     }
 
+    // TODO: improve by to not have to call a mutex lock for every pin being set
     /// Configure multiple pins' mode, function, state, etc..
-    pub fn set_configs<T>(&self, pins: &[u8], config: T)
+    pub fn set_configs<T>(&self, pins: &[u8], config: T) -> Result<(), Error>
     where
         T: PinConfig,
     {
         for pin in pins.iter() {
-            // send pin config to matrix bus
-            let (value, fpga_address_offset) = config.generate_values(*pin, self);
+            // update and send pin config to matrix bus
+            let (value, fpga_address_offset) = config.update_pin_map(*pin, self)?;
             self.pin_set(value, fpga_address_offset);
         }
+
+        Ok(())
     }
 
     /// Shortener to set pin configurations. `value` & `address_offset` are directly passed into the bus' write buffer.

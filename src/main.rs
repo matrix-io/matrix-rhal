@@ -13,26 +13,21 @@ fn main() {
     everloop.set_all(hal::Rgbw::new(0, 0, 0, 0));
     test_gpio_set_value(&gpio);
 
-    // loop {
-    //     println!("{:?}", gpio.get_value(1));
+    loop {
+        println!("{:?}", gpio.get_values());
 
-    //     delay(100);
-    // }
+        delay(100);
+    }
 }
 
 fn test_gpio_set_value(gpio: &hal::Gpio) {
     // TODO: If pinA is configured before pinB and pinA position > pinB position, there are issues with State & Output config.
-    // gpio.set_configs(&[0, 1], Function::Digital);
+    gpio.set_configs(&[0, 1], Function::Digital).unwrap();
 
-    // gpio.set_config(0, Function::Digital);
-    // gpio.set_config(1, Function::Digital);
+    gpio.set_config(1, Mode::Output).unwrap();
+    gpio.set_config(0, Mode::Input).unwrap();
 
-    gpio.set_config(0, Mode::Output);
-    gpio.set_config(1, Mode::Output);
-    gpio.set_config(2, Mode::Output);
-    // gpio.set_config(12, Mode::Input);
-
-    // gpio.set_config(1, State::On);
+    gpio.set_config(1, State::On).unwrap();
 
     // set pin 0 to receive a signal
     // gpio.set_config(0, Mode::Input);

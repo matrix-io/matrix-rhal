@@ -11,8 +11,8 @@ pub enum Error {
     UnableToStartBus,
     /// MATRIX Kernel modules have not been installed.
     KernelModulesNotInstalled,
-    /// The mutex for the Bus could not be grabbed. (currently unused)
-    PoisonedBusMutex,
+    /// General Mutex error
+    PoisonedMutex,
 }
 
 impl<'a> fmt::Display for Error {
@@ -20,7 +20,7 @@ impl<'a> fmt::Display for Error {
         match self {
             Error::UnknownDevice => write!(f, "Unable to identify MATRIX device."),
             Error::UnableToStartBus => write!(f, "Could not start the MATRIX bus."),
-            Error::PoisonedBusMutex => write!(f, "Mutex for MATRIX bus is unreachable."),
+            Error::PoisonedMutex => write!(f, " A mutex lock was dropped during a panic."),
             Error::KernelModulesNotInstalled => {
                 write!(f, "The MATRIX Kernel Modules have not been installed. In order to work, this library requires them!")
             }
@@ -41,8 +41,8 @@ impl From<nix::Error> for Error {
 
 use std::sync::MutexGuard;
 use std::sync::PoisonError;
-impl From<PoisonError<MutexGuard<'_, ()>>> for Error {
-    fn from(_: PoisonError<MutexGuard<()>>) -> Self {
-        Error::PoisonedBusMutex
+impl From<PoisonError<MutexGuard<'_, u16>>> for Error {
+    fn from(_: PoisonError<MutexGuard<u16>>) -> Self {
+        Error::PoisonedMutex
     }
 }

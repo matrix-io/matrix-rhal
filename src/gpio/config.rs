@@ -1,72 +1,70 @@
 // TODOs For Tomorrow
-// TODO: Change all `generate_values` function to be fixed like `Mode`'s implementation.
+// TODO: Change all `update_pin_map` function to be fixed like `Mode`'s implementation.
 // TODO: Stop returning a tuple for generate values since the history is a global object in `Gpio`.
 
 use super::Gpio;
+use crate::error::Error;
 
 pub trait PinConfig {
-    /// Returns a tuple with an encoded number, representing your configuration, and an FPGA address offset.
-    fn generate_values(&self, pin: u8, gpio: &Gpio) -> (u32, u16);
+    /// Returns a tuple with a number, binary representation of each pin config, and an FPGA address offset for the config being changed.
+    fn update_pin_map(&self, pin: u8, gpio: &Gpio) -> Result<(u32, u16), Error>;
 }
 
 /// Specifies if a pin is being used for Output or Input signals.
+#[derive(Copy, Clone)]
 pub enum Mode {
-    Output,
-    Input,
+    Input = 0,
+    Output = 1,
 }
 impl PinConfig for Mode {
-    fn generate_values(&self, pin: u8, gpio: &Gpio) -> (u32, u16) {
-        let mode = match self {
-            Mode::Input => 0,
-            Mode::Output => 1,
-        };
-
-        let mut history = gpio.mode_history.lock().unwrap();
+    fn update_pin_map(&self, pin: u8, gpio: &Gpio) -> Result<(u32, u16), Error> {
+        let mode = *self as u16;
         let mask = 1 << pin;
-        *history = mode << pin | (*history & !mask);
+        let mut pin_map = gpio.mode_pin_map.lock()?;
 
-        (*history as u32, 0)
+        *pin_map = mode << pin | (*pin_map & !mask);
+
+        println!("mode: {:b}", *pin_map);
+        Ok((*pin_map as u32, 0))
     }
 }
 
 // Specifies the current signal state of a pin.
+#[derive(Copy, Clone)]
 pub enum State {
-    Off,
-    On,
+    Off = 0,
+    On = 1,
 }
 
 impl PinConfig for State {
-    fn generate_values(&self, pin: u8, gpio: &Gpio) -> (u32, u16) {
-        let mode = match self {
-            State::Off => 0,
-            State::On => 1,
-        };
-
-        let mut history = *gpio.state_history.lock().unwrap();
+    fn update_pin_map(&self, pin: u8, gpio: &Gpio) -> Result<(u32, u16), Error> {
+        let state = *self as u16;
         let mask = 1 << pin;
-        history = mode << pin | (history & !mask);
+        let mut pin_map = gpio.state_pin_map.lock()?;
 
-        (history as u32, 1)
+        *pin_map = state << pin | (*pin_map & !mask);
+
+        println!("state: {:b}", *pin_map);
+        Ok((*pin_map as u32, 1))
     }
 }
 
 /// Specifies which function a pin is using.
+#[derive(Copy, Clone)]
 pub enum Function {
-    Digital,
-    Pwm,
+    Digital = 0,
+    Pwm = 1,
 }
 
 impl PinConfig for Function {
-    fn generate_values(&self, pin: u8, gpio: &Gpio) -> (u32, u16) {
-        let mode = match self {
-            Function::Digital => 0,
-            Function::Pwm => 1,
-        };
-
-        let mut history = *gpio.function_history.lock().unwrap();
+    fn update_pin_map(&self, pin: u8, gpio: &Gpio) -> Result<(u32, u16), Error> {
+        let function = *self as u16;
         let mask = 1 << pin;
-        history = mode << pin | (history & !mask);
+        let mut pin_map = gpio.function_pin_map.lock()?;
 
-        (history as u32, 2)
+        *pin_map = function << pin | (*pin_map & !mask);
+
+        println!("function: {:b}", *pin_map);
+        Ok((*pin_map as u32, 2))
     }
 }
