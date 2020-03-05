@@ -79,7 +79,7 @@ impl Bus {
     fn get_device_name(&self) -> Result<Device, Error> {
         let mut data: [i32; 4] = [0; 4];
         data[0] = fpga_address::CONF as i32;
-        data[1] = 8; // bytes needed for results
+        data[1] = 8; // bytes needed for results (device_name(4 bytes) and device_version(4 bytes))
 
         // store the bytes representing device type & version
         self.read(unsafe { std::mem::transmute::<&mut [i32], &mut [u8]>(&mut data) });

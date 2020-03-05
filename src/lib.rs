@@ -1,10 +1,11 @@
 mod bus;
-pub mod error;
+mod error;
 mod everloop;
 pub mod gpio;
 mod sensors;
 
 pub use bus::Bus;
+pub use error::Error;
 pub use everloop::Everloop;
 pub use everloop::Rgbw;
 pub use gpio::Gpio;
