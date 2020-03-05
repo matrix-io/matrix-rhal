@@ -14,11 +14,11 @@ fn main() {
 
     // test_gpio_set_value(&gpio);
 
-    // loop {
-    //     println!("{:?}", gpio.get_states());
+    loop {
+        println!("{:?}", gpio.get_states());
 
-    //     // delay(100);
-    // }
+        // delay(100);
+    }
 }
 
 fn test_gpio_set_value(gpio: &hal::Gpio) {

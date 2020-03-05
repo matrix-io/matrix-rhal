@@ -3,9 +3,8 @@ use super::Gpio;
 use crate::bus::memory_map::*;
 
 impl<'a> Gpio<'a> {
-    // TODO: change u8 to State
     /// Returns the current digital value of a MATRIX GPIO pin (0->15).
-    pub fn get_state(&self, pin: u8) -> State {
+    pub fn get_state(&self, pin: u8) -> bool {
         // create read buffer
         let mut data: [u32; 3] = [0; 3];
 
@@ -17,15 +16,17 @@ impl<'a> Gpio<'a> {
         let state = (data[2] & mask) >> pin;
 
         match state {
-            0 => State::Off,
-            1 => State::On,
-            _ => panic!("Error retrieving current pin state. Value returned was not 0 or 1"),
+            0 => false,
+            1 => true,
+            _ => {
+                panic!("Error retrieving current pin state. Digital value returned was not 0 or 1")
+            }
         }
     }
 
     // TODO: change u8 to State
     /// Returns the current digital value of every MATRIX GPIO pin (0->15)
-    pub fn get_states(&self) -> [State; 16] {
+    pub fn get_states(&self) -> [bool; 16] {
         // create read buffer
         let mut data: [u32; 3] = [0; 3];
 
@@ -33,15 +34,17 @@ impl<'a> Gpio<'a> {
         self.pin_get(&mut data, 2, 1); // all pin states are encoded as a single u16. 2 bytes needed (8*2 = 16 pins)
 
         // bit operation to extract each pin state (0-15)
-        let mut pins = [State::Off; 16];
+        let mut pins: [bool; 16] = [false; 16];
         for i in 0..16 {
             let mask = 0x1 << i;
             let state = ((data[2] & mask) >> i) as u8;
 
             pins[i] = match state {
-                0 => State::Off,
-                1 => State::On,
-                _ => panic!("Error retrieving current pin state. Value returned was not 0 or 1"),
+                0 => false,
+                1 => true,
+                _ => panic!(
+                    "Error retrieving current pin state. Digital value returned was not 0 or 1"
+                ),
             };
         }
 

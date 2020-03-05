@@ -1,6 +1,5 @@
 use super::Gpio;
 use crate::error::Error;
-use std::fmt;
 
 pub trait PinConfig {
     /// Returns a tuple with a number, binary representation of each pin config, and an FPGA address offset for the config being changed.
@@ -26,7 +25,7 @@ impl PinConfig for Mode {
 }
 
 /// Specifies if the current state of a pin is `Off`(0) or `On`(1).
-#[derive(Copy, Clone)]
+#[derive(Debug, Copy, Clone)]
 pub enum State {
     Off = 0,
     On = 1,
@@ -41,20 +40,6 @@ impl PinConfig for State {
         *pin_map = state << pin | (*pin_map & !mask);
 
         Ok((*pin_map, 1))
-    }
-}
-
-impl fmt::Display for State {
-    // Convert State::On and State::Off to 1 and 0 respectively
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", *self as u8)
-    }
-}
-
-impl fmt::Debug for State {
-    // Convert State::On and State::Off to 1 and 0 respectively
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", *self as u8)
     }
 }
 
