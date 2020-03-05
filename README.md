@@ -2,11 +2,11 @@
 
 ![https://crates.io/crates/matrix_rhal](https://img.shields.io/badge/crates.io-v0.0.0-orange.svg?longCache=true)
 
-MATRIX RHAL is the Rust implementation of MATRIX HAL. The goal is to center around calling the MATRIX Kernel Modules and have most/all of HAL rewritten in this layer.
+MATRIX RHAL is the Rust implementation of MATRIX HAL. The goal is to center around calling the MATRIX Kernel Modules and have most/all of HAL's features in this layer.
 
 # Roadmap
 
-This will be a bare minimum roadmap on what features are working. It's safe to assume that some of these will require further calibration and testing.
+Below are the current/planned features in RHAL.
 
 - [x] Device information
 - [x] Sensor Reading
@@ -19,6 +19,8 @@ This will be a bare minimum roadmap on what features are working. It's safe to a
   - [x] Digital Read/Write
   - [ ] PWM Write
 - [ ] Microphone
+- [ ] Improve Documentation
+- [ ] Automatic Deployment to Crate.io
 
 # Dependencies
 
@@ -48,7 +50,7 @@ sudo reboot
 
 # Building From Source (Raspberry Pi)
 
-Building directly on your Raspberry Pi will cause some delay in compilation times, due to the processing power available.
+Building directly on your Raspberry Pi will lead to slower compilation times, due to the lack processing power.
 
 Install git.
 
@@ -74,7 +76,7 @@ Add MATRIX RHAL as a dependency to your Rust project.
 
 # Building From Source (Cross Compile)
 
-Compiling this project from your personal computer saves a lot of time during development. Below are some guides to help set up this workflow using:
+To reduce compilation times, it's recommended to build RHAL on your computer and deploy it to the Pi. This ends up saving time and sanity during development. Below are some guides to help set up this workflow:
 
 - [Docker](https://github.com/rust-embedded/cross)
 - [Linux](https://chacin.dev/blog/cross-compiling-rust-for-the-raspberry-pi)
