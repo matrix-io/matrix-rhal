@@ -1,6 +1,6 @@
 [package]
 name = "matrix_rhal"
-version = "0.0.0"
+version = "0.0.1"
 authors = ["Carlos Chacin"]
 edition = "2018"
 exclude = ["Makefile"]
