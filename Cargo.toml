@@ -6,6 +6,7 @@ edition = "2018"
 readme = "README.md"
 documentation = "https://docs.rs/matrix_rhal/"
 keywords = ["raspberry-pi", "matrix-creator", "matrix-voice", "matrix-labs"]
+repository = "https://github.com/matrix-io/matrix-rhal"
 exclude = ["Makefile"]
 description = "The Rust implementation of MATRIX HAL."
 license = "GPL-3.0"
