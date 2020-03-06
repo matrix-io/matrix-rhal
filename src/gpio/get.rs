@@ -5,6 +5,9 @@ use crate::bus::memory_map::*;
 impl<'a> Gpio<'a> {
     /// Returns the current digital value of a MATRIX GPIO pin (0->15).
     pub fn get_state(&self, pin: u8) -> bool {
+        // TODO: add error check
+        Gpio::is_pin_valid(pin).unwrap();
+
         // create read buffer
         let mut data: [u32; 3] = [0; 3];
 

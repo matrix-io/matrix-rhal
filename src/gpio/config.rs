@@ -2,7 +2,7 @@ use super::Gpio;
 use crate::error::Error;
 
 pub trait PinConfig {
-    /// Returns a tuple with a number, binary representation of each pin config, and an FPGA address offset for the config being changed.
+    /// Returns a tuple of a number (binary representation of each pin config) and an FPGA address offset for the config being changed.
     fn update_pin_map(&self, pin: u8, gpio: &Gpio) -> Result<(u16, u16), Error>;
 }
 

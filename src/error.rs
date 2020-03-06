@@ -13,6 +13,8 @@ pub enum Error {
     KernelModulesNotInstalled,
     /// General Mutex error
     PoisonedMutex,
+    /// The GPIO pin selected does not exist
+    InvalidGpioPin,
 }
 
 impl<'a> fmt::Display for Error {
@@ -20,7 +22,8 @@ impl<'a> fmt::Display for Error {
         match self {
             Error::UnknownDevice => write!(f, "Unable to identify MATRIX device."),
             Error::UnableToStartBus => write!(f, "Could not start the MATRIX bus."),
-            Error::PoisonedMutex => write!(f, " A mutex lock was dropped during a panic."),
+            Error::PoisonedMutex => write!(f, "A mutex lock was dropped during a panic."),
+            Error::InvalidGpioPin => write!(f, "The GPIO pin selected does not exist. Valid pins are from 0-15"),
             Error::KernelModulesNotInstalled => {
                 write!(f, "The MATRIX Kernel Modules have not been installed. In order to work, this library requires them!")
             }
@@ -43,6 +46,19 @@ use std::sync::MutexGuard;
 use std::sync::PoisonError;
 impl From<PoisonError<MutexGuard<'_, u16>>> for Error {
     fn from(_: PoisonError<MutexGuard<u16>>) -> Self {
+        Error::PoisonedMutex
+    }
+}
+
+impl From<PoisonError<MutexGuard<'_, u32>>> for Error {
+    fn from(_: PoisonError<MutexGuard<u32>>) -> Self {
+        Error::PoisonedMutex
+    }
+}
+
+use crate::gpio::bank::Bank;
+impl From<PoisonError<MutexGuard<'_, Vec<Bank<'_>>>>> for Error {
+    fn from(_: PoisonError<MutexGuard<Vec<Bank>>>) -> Self {
         Error::PoisonedMutex
     }
 }

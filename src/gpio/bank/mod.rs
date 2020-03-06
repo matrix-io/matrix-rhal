@@ -34,8 +34,8 @@ impl<'a> Bank<'a> {
     }
 
     /// Set the duty cycle for PWM.
-    pub fn set_duty(&self, duty: u16) {
-        self.bus_write(self.memory_offset + 2, duty);
+    pub fn set_duty(&self, channel: u16, duty: u16) {
+        self.bus_write(self.memory_offset + 2 + channel, duty);
     }
 
     /// Send a bank configuration to the MATRIX bus.

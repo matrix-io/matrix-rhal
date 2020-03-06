@@ -10,9 +10,7 @@ impl<'a> Gpio<'a> {
     where
         T: PinConfig,
     {
-        if pin > 15 {
-            panic!("The MATRIX Voice/Creator GPIO pins are from 0-15");
-        }
+        Gpio::is_pin_valid(pin)?;
 
         // update and send pin config to matrix bus
         let (value, fpga_address_offset) = config.update_pin_map(pin, self)?;
@@ -51,10 +49,43 @@ impl<'a> Gpio<'a> {
     /// Set the prescaler value for a specific bank
     pub fn set_prescaler(&self, bank: usize, prescaler: u16) -> Result<(), Error> {
         let mask = 0xF << (4 * bank);
-        let mut prescaler = self.prescaler_bank_map.lock()?;
-        *prescaler = *prescaler << (4 * bank) | (*prescaler & !mask);
+        let mut bank_prescaler = self.prescaler_bank_map.lock()?;
 
-        self.bus_write(*prescaler, fpga_address::GPIO + 3);
+        *bank_prescaler = prescaler << (4 * bank) | (*bank_prescaler & !mask);
+
+        println!("mask: {}", mask);
+        println!("bank_prescaler: {}", bank_prescaler);
+
+        self.bus_write(*bank_prescaler, 3);
+        Ok(())
+    }
+
+    /// Set the Pulse Width Modulation output for a pin.
+    pub fn set_pwm(&self, pin: u8, frequency: f32, percentage: f32) -> Result<(), Error> {
+        Gpio::is_pin_valid(pin)?;
+
+        const GPIO_PRESCALER: u16 = 0x5;
+        let period_seconds = 1.0 / frequency;
+        let fpga_clock = self.bus.fpga_frequency;
+
+        let period_counter: u32 =
+            ((period_seconds * fpga_clock as f32) / ((1 << GPIO_PRESCALER) * 2) as f32) as u32;
+
+        let duty_counter = ((period_counter as f32 * percentage) / 100.0) as u16;
+        let bank = (pin / 4) as u16;
+        let channel = (pin % 4) as u16;
+
+        // println!("period_counter: {}", period_counter);
+        // println!("duty_counter: {}", duty_counter);
+        // println!("bank: {}", bank);
+        // println!("channel: {}", channel);
+
+        // apply PWM settings
+        self.set_prescaler(bank as usize, GPIO_PRESCALER)?;
+        let bank = &self.banks.lock()?[0];
+        bank.set_period(period_counter as u16);
+        bank.set_duty(channel, duty_counter);
+
         Ok(())
     }
 }

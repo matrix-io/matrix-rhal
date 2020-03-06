@@ -1,4 +1,5 @@
 use crate::Bus;
+use crate::Error;
 pub mod bank;
 pub mod config;
 pub use bank::*;
@@ -36,5 +37,14 @@ impl<'a> Gpio<'a> {
             prescaler_bank_map: Mutex::new(0x0),
             banks: Mutex::new(banks),
         }
+    }
+
+    /// A simple check to make sure a selected pin Exists
+    fn is_pin_valid(pin: u8) -> Result<(), Error> {
+        if pin > 15 {
+            return Err(Error::InvalidGpioPin);
+        }
+
+        Ok(())
     }
 }

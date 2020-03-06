@@ -28,7 +28,7 @@ Below are the current/planned features in RHAL.
 - [x] Everloop
 - [x] GPIO
   - [x] Digital Read/Write
-  - [ ] PWM Write
+  - [x] PWM Write
 - [ ] Microphone
 - [ ] Documentation
 
