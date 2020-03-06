@@ -31,7 +31,6 @@ Below are the current/planned features in RHAL.
   - [ ] PWM Write
 - [ ] Microphone
 - [ ] Improve Documentation
-- [ ] Automatic Deployment to Crate.io
 
 # Dependencies
 
