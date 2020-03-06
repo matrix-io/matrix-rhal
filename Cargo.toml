@@ -1,7 +1,7 @@
 [package]
 name = "matrix_rhal"
 version = "0.0.0"
-authors = ["Hermitter"]
+authors = ["Carlos Chacin"]
 edition = "2018"
 exclude = ["Makefile"]
 description = "The Rust implementation of MATRIX HAL."
