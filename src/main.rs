@@ -22,9 +22,7 @@ fn main() {
 }
 
 fn test_gpio_set_value(gpio: &hal::Gpio) {
-    // TODO: If pinA is configured before pinB and pinA position > pinB position, there are issues with State & Output config.
     gpio.set_configs(&[0, 1], Function::Digital).unwrap();
-
     gpio.set_config(1, Mode::Output).unwrap();
     gpio.set_config(0, Mode::Input).unwrap();
 
