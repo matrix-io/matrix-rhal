@@ -1,6 +1,6 @@
 # MATRIX Rust Hardware Abstraction Layer
 
-[![API](https://docs.rs/matrix_rhal/badge.svg)](https://docs.rs/matrix_rhal/0.0.0/matrix_rhal/)
+[![API](https://docs.rs/matrix_rhal/badge.svg)](https://docs.rs/matrix_rhal/)
 [![Crate](https://img.shields.io/crates/v/matrix-rhal.svg)](https://crates.io/crates/matrix_rhal)
 ![crates.io Deployment](https://github.com/matrix-io/matrix-rhal/workflows/crates.io%20Deployment/badge.svg)
 
