@@ -30,7 +30,7 @@ Below are the current/planned features in RHAL.
   - [x] Digital Read/Write
   - [ ] PWM Write
 - [ ] Microphone
-- [ ] Improve Documentation
+- [ ] Documentation
 
 # Dependencies
 
