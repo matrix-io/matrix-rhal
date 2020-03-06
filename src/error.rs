@@ -49,3 +49,16 @@ impl From<PoisonError<MutexGuard<'_, u16>>> for Error {
         Error::PoisonedMutex
     }
 }
+
+impl From<PoisonError<MutexGuard<'_, u32>>> for Error {
+    fn from(_: PoisonError<MutexGuard<u32>>) -> Self {
+        Error::PoisonedMutex
+    }
+}
+
+use crate::gpio::bank::Bank;
+impl From<PoisonError<MutexGuard<'_, Vec<Bank<'_>>>>> for Error {
+    fn from(_: PoisonError<MutexGuard<Vec<Bank>>>) -> Self {
+        Error::PoisonedMutex
+    }
+}
