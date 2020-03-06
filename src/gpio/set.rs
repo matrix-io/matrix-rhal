@@ -10,9 +10,7 @@ impl<'a> Gpio<'a> {
     where
         T: PinConfig,
     {
-        if pin > 15 {
-            panic!("The MATRIX Voice/Creator GPIO pins are from 0-15");
-        }
+        Gpio::is_pin_valid(pin)?;
 
         // update and send pin config to matrix bus
         let (value, fpga_address_offset) = config.update_pin_map(pin, self)?;
@@ -55,6 +53,13 @@ impl<'a> Gpio<'a> {
         *prescaler = *prescaler << (4 * bank) | (*prescaler & !mask);
 
         self.bus_write(*prescaler, fpga_address::GPIO + 3);
+        Ok(())
+    }
+
+    /// Set the Pulse Width Modulation output for a pin.
+    pub fn set_pwm(&self, pin: u8, frequency: f32, percentage: f32) -> Result<(), Error> {
+        Gpio::is_pin_valid(pin)?;
+
         Ok(())
     }
 }

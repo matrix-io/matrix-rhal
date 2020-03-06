@@ -13,6 +13,8 @@ pub enum Error {
     KernelModulesNotInstalled,
     /// General Mutex error
     PoisonedMutex,
+    /// The GPIO pin selected does not exist
+    InvalidGpioPin,
 }
 
 impl<'a> fmt::Display for Error {
@@ -20,7 +22,8 @@ impl<'a> fmt::Display for Error {
         match self {
             Error::UnknownDevice => write!(f, "Unable to identify MATRIX device."),
             Error::UnableToStartBus => write!(f, "Could not start the MATRIX bus."),
-            Error::PoisonedMutex => write!(f, " A mutex lock was dropped during a panic."),
+            Error::PoisonedMutex => write!(f, "A mutex lock was dropped during a panic."),
+            Error::InvalidGpioPin => write!(f, "The GPIO pin selected does not exist. Valid pins are from 0-15"),
             Error::KernelModulesNotInstalled => {
                 write!(f, "The MATRIX Kernel Modules have not been installed. In order to work, this library requires them!")
             }
