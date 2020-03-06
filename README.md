@@ -1,8 +1,18 @@
 # MATRIX Rust Hardware Abstraction Layer
 
-[![](https://img.shields.io/badge/crates.io-v0.0.0-orange.svg?longCache=true)](https://crates.io/crates/matrix_rhal)
+[![API](https://docs.rs/matrix_rhal/badge.svg)](https://docs.rs/matrix_rhal/0.0.0/matrix_rhal/)
+[![Crate](https://img.shields.io/crates/v/matrix-rhal.svg)](https://crates.io/crates/matrix_rhal)
 
 MATRIX RHAL is the Rust implementation of MATRIX HAL. The goal is to center around calling the MATRIX Kernel Modules and have most/all of HAL's features in this layer.
+
+# Usage
+
+Add this to your `Cargo.toml`:
+
+```toml
+[dependencies]
+matrix_rhal = "0.0.1"
+```
 
 # Roadmap
 
