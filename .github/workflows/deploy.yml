@@ -1,4 +1,4 @@
-name: Crates.io Deployment
+name: crates.io Deployment
 on:
   push:
     tags:
