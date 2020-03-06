@@ -29,15 +29,6 @@ fn test_gpio_set_value(gpio: &hal::Gpio) {
     gpio.set_config(0, Mode::Input).unwrap();
 
     gpio.set_config(1, State::On).unwrap();
-
-    // set pin 0 to receive a signal
-    // gpio.set_config(0, Mode::Input);
-    // gpio.set_config(0, Function::Digital);
-
-    // // set pin 1 to output a signal
-    // gpio.set_config(1, Mode::Output);
-    // gpio.set_config(1, Function::Digital);
-    // gpio.set_config(1, State::On);
 }
 
 fn test_sensors(sensors: &hal::Sensors) {
