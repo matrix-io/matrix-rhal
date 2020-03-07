@@ -21,8 +21,6 @@ matrix_rhal = "0.0.5"
 
 Below are the current/planned features in RHAL. While this library is being put together, updates will be pushed to crates.io as `v0.0.*` for users to try.
 
-Semantic versioning will
-
 - [x] Device information
 - [x] Sensor Reading
   - [x] UV
