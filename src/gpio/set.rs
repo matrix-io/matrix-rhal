@@ -53,9 +53,6 @@ impl<'a> Gpio<'a> {
 
         *bank_prescaler = prescaler << (4 * bank) | (*bank_prescaler & !mask);
 
-        println!("mask: {}", mask);
-        println!("bank_prescaler: {}", bank_prescaler);
-
         self.bus_write(*bank_prescaler, 3);
         Ok(())
     }
@@ -74,11 +71,6 @@ impl<'a> Gpio<'a> {
         let duty_counter = ((period_counter as f32 * percentage) / 100.0) as u16;
         let bank = (pin / 4) as u16;
         let channel = (pin % 4) as u16;
-
-        println!("period_counter: {}", period_counter);
-        println!("duty_counter: {}", duty_counter);
-        println!("bank: {}", bank);
-        println!("channel: {}", channel);
 
         // apply PWM settings
         self.set_prescaler(bank as usize, GPIO_PRESCALER)?;
