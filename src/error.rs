@@ -44,21 +44,8 @@ impl From<nix::Error> for Error {
 
 use std::sync::MutexGuard;
 use std::sync::PoisonError;
-impl From<PoisonError<MutexGuard<'_, u16>>> for Error {
-    fn from(_: PoisonError<MutexGuard<u16>>) -> Self {
-        Error::PoisonedMutex
-    }
-}
-
-impl From<PoisonError<MutexGuard<'_, u32>>> for Error {
-    fn from(_: PoisonError<MutexGuard<u32>>) -> Self {
-        Error::PoisonedMutex
-    }
-}
-
-use crate::gpio::bank::Bank;
-impl From<PoisonError<MutexGuard<'_, Vec<Bank<'_>>>>> for Error {
-    fn from(_: PoisonError<MutexGuard<Vec<Bank>>>) -> Self {
+impl<T> From<PoisonError<MutexGuard<'_, T>>> for Error {
+    fn from(_: PoisonError<MutexGuard<T>>) -> Self {
         Error::PoisonedMutex
     }
 }
