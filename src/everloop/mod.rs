@@ -15,18 +15,36 @@ impl<'a> Everloop<'a> {
         Everloop { bus }
     }
 
-    /// Map MATRIX LED colors to each RGBW passed in.
+    /// Map each `RGBW` to the respective MATRIX LED. LEDs not set are defaulted to black.
+    ///
+    /// # Example
+    /// ```
+    /// // Set 15 LEDs to blue and the remaining to black
+    /// everloop.set(&vec![hal::Rgbw::new(0,0,255,0); 15]);
+    /// ```
     pub fn set(&self, leds: &[Rgbw]) {
-        // create write buffer
-        let mut request = Vec::with_capacity(leds.len() + 2);
+        if leds.len() > self.bus.device_leds as usize {
+            panic!(
+                "Invalid LED set. This device only has {} LEDs",
+                self.bus.device_leds
+            );
+        }
 
-        request.push(fpga_address::EVERLOOP as i32); // everloop address
+        // create write buffer
+        let mut request = Vec::with_capacity(self.bus.device_leds as usize + 2);
+
+        request.push(fpga_address::EVERLOOP as i32); // address to write to
         request.push((self.bus.device_leds * 4) as i32); // byte length of data to send in write_buffer
 
         // store all LED colors given
         for led in leds {
             request
                 .push(unsafe { std::mem::transmute::<[u8; 4], i32>([led.r, led.g, led.b, led.w]) });
+        }
+
+        // set remaining LEDs to black
+        for _ in 0..(request.capacity() - request.len()) {
+            request.push(unsafe { std::mem::transmute::<[u8; 4], i32>([0, 0, 0, 0]) })
         }
 
         // render LEDs
