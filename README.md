@@ -4,7 +4,7 @@
 [![Crate](https://img.shields.io/crates/v/matrix-rhal.svg)](https://crates.io/crates/matrix_rhal)
 ![crates.io Deployment](https://github.com/matrix-io/matrix-rhal/workflows/crates.io%20Deployment/badge.svg)
 
-MATRIX RHAL is the Rust implementation of [MATRIX HAL](https://github.com/matrix-io/matrix-creator-hal). The goal is to center around calling the MATRIX Kernel Modules and provide a viable alternative to HAL.
+MATRIX RHAL is the Rust implementation of [MATRIX HAL](https://github.com/matrix-io/matrix-creator-hal). The goal is to center around calling the MATRIX Kernel Modules and eventually implement all of HAL's features in this layer.
 
 # Usage
 
