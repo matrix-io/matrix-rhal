@@ -1,3 +1,4 @@
+use crate::bus::memory_map::*;
 use crate::Bus;
 
 /// Bank contains functions to configure a PWM.
@@ -14,8 +15,8 @@ use crate::Bus;
 pub struct Bank<'a> {
     bus: &'a Bus,
     /// FPGA memory offset
-    memory_offset: u16,
-    timer_setup: u16,
+    pub memory_offset: u16,
+    pub timer_setup: u16,
 }
 
 impl<'a> Bank<'a> {
@@ -26,6 +27,21 @@ impl<'a> Bank<'a> {
             memory_offset: 0x0,
             timer_setup: 0x0,
         }
+    }
+
+    /// Create 4 banks configured for use in a MATRIX device.
+    pub fn new_set(bus: &Bus) -> Vec<Bank> {
+        // create a bank for each set of 4 pins
+        let mut banks = vec![Bank::new(&bus).clone(); 4];
+
+        // configure each bank with the proper address offsets
+        let mut gpio_base_address = fpga_address::GPIO + 4;
+        for mut bank in &mut banks {
+            bank.memory_offset = gpio_base_address;
+            gpio_base_address = gpio_base_address + 6;
+        }
+
+        banks
     }
 
     /// Set the period for PWM.

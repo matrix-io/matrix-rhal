@@ -75,10 +75,10 @@ impl<'a> Gpio<'a> {
         let bank = (pin / 4) as u16;
         let channel = (pin % 4) as u16;
 
-        // println!("period_counter: {}", period_counter);
-        // println!("duty_counter: {}", duty_counter);
-        // println!("bank: {}", bank);
-        // println!("channel: {}", channel);
+        println!("period_counter: {}", period_counter);
+        println!("duty_counter: {}", duty_counter);
+        println!("bank: {}", bank);
+        println!("channel: {}", channel);
 
         // apply PWM settings
         self.set_prescaler(bank as usize, GPIO_PRESCALER)?;

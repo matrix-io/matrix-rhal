@@ -111,8 +111,8 @@ impl Bus {
 
         self.read(unsafe { std::mem::transmute::<&mut [i32], &mut [u8]>(&mut data) });
 
-        let value0 = data[2] >> 16;
-        let value1 = !(value0 << 16) & data[2];
+        let value0 = data[2] >> 16; // store 1st 16 bits
+        let value1 = !(value0 << 16) & data[2]; // store 2nd 16 bits
         let frequency = (device_info::FPGA_CLOCK * value0 as u32) / value1 as u32;
 
         Ok(frequency)
