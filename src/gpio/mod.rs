@@ -27,15 +27,13 @@ pub struct Gpio<'a> {
 impl<'a> Gpio<'a> {
     /// Returns an instance of GPIO.
     pub fn new(bus: &'a Bus) -> Gpio {
-        let banks = vec![Bank::new(&bus).clone(); 4];
-
         Gpio {
             bus,
             mode_pin_map: Mutex::new(0x0),
             state_pin_map: Mutex::new(0x0),
             function_pin_map: Mutex::new(0x0),
             prescaler_bank_map: Mutex::new(0x0),
-            banks: Mutex::new(banks),
+            banks: Mutex::new(Bank::new_set(&bus)),
         }
     }
 
