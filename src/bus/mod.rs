@@ -5,7 +5,6 @@ use nix::fcntl::{open, OFlag}; // https://linux.die.net/man/3/open
 use nix::sys::stat::Mode;
 use nix::unistd::close;
 use nix::{ioctl_read_bad, ioctl_write_ptr_bad};
-use std::sync::Mutex;
 
 // Generate ioctl_read() function
 ioctl_read_bad!(ioctl_read, ioctl_code::READ, [u8]);
@@ -46,8 +45,8 @@ impl Bus {
         // fetch information on the current MATRIX device
         bus.device_name = bus.get_device_name()?;
         bus.device_leds = match bus.device_name {
-            Device::Creator => 35,
-            Device::Voice => 18,
+            Device::Creator => device_info::MATRIX_CREATOR_LEDS,
+            Device::Voice => device_info::MATRIX_VOICE_LEDS,
             _ => panic!("Cannot determine number of LEDs on device (This is a hard-coded value)."),
         };
         bus.fpga_frequency = bus.get_fpga_frequency()?;
@@ -55,26 +54,55 @@ impl Bus {
         Ok(bus)
     }
 
-    /// Populate a buffer with the requested data.
+    /// Send a write buffer to the MATRIX Kernel Modules. The buffer requires an `address` to request,
+    /// the `byte_length` of the data being given, and then the rest of the data itself.
     ///
-    ///  `write_buffer` requires [FPGA address, bytes of data being sent, data being sent...]
+    /// # Usage
+    ///  ```
+    ///  let value: u16 = 237;
+    ///  let mut buffer: [u32; 3] = [0; 3];
+    ///     
+    ///  // address to query
+    ///  buffer[0] = (fpga_address::GPIO + address_offset) as u32;
+    ///  // bytes of data being sent (u16 = 2 bytes)
+    ///  buffer[1] = 2;
+    ///  // data to send
+    ///  buffer[2] = value as i32;
     ///
-    /// Any data added should start at index 2.
+    ///  // send buffer
+    ///  self.bus.write(unsafe { std::mem::transmute::<&mut [u32], &mut [u8]>(&mut buffer) });
+    ///  ```
     pub fn write(&self, write_buffer: &mut [u8]) {
         unsafe {
-            // TODO: error handling
+            // TODO: error handling. Not sure if an error here would be worth recovering from.
             ioctl_write(self.regmap_fd, write_buffer).expect("error in IOCTL WRITE");
         }
     }
 
-    /// Populate a buffer with the requested data.
+    /// Send a read buffer to the MATRIX Kernel Modules. The buffer requires an `address` to request and
+    /// the `byte_length` of that's expected to be returned. Once sent, the buffer return with populated
+    /// data.
     ///
-    ///  `read_buffer` requires [FPGA address, bytes of data returning, all data returned...]
+    /// Keep in mind, the returned buffer will still have the `address` and `byte_length` that was passed.
     ///
-    /// Any data returned will start at the index 2.
+    /// # Usage
+    ///  ```
+    ///  let mut buffer: [u32; 4] = [0; 4];
+    ///
+    ///  // address to query
+    ///  buffer[0] = (fpga_address::CONF) as u32;
+    ///  // bytes being requested
+    ///  buffer[1] = 8;
+    ///
+    ///  // populate buffer
+    ///  bus.read(unsafe { std::mem::transmute::<&mut [u32], &mut [u8]>(buffer) });
+    ///
+    ///  // returned data will start at buffer[2]
+    ///  println!("{:?}", buffer);
+    ///  ```
     pub fn read(&self, read_buffer: &mut [u8]) {
         unsafe {
-            // TODO: error handling
+            // TODO: error handling. Not sure if an error here would be worth recovering from.
             ioctl_read(self.regmap_fd, read_buffer).expect("error in IOCTL READ");
         }
     }
@@ -86,11 +114,11 @@ impl Bus {
 
     /// Return the type of MATRIX device being used.
     fn get_device_name(&self) -> Result<Device, Error> {
+        // create read buffer
         let mut data: [i32; 4] = [0; 4];
-        data[0] = fpga_address::CONF as i32; // address to request
-        data[1] = 8; // bytes needed for results (device_name(4 bytes) and device_version(4 bytes))
+        data[0] = fpga_address::CONF as i32;
+        data[1] = 8; // device_name(4 bytes) device_version(4 bytes)
 
-        // update data with values found in address
         self.read(unsafe { std::mem::transmute::<&mut [i32], &mut [u8]>(&mut data) });
 
         let device_name = data[2];
@@ -105,12 +133,14 @@ impl Bus {
 
     /// Updates the Bus to have the last known FPGA frequency of the MATRIX device.
     fn get_fpga_frequency(&self) -> Result<u32, Error> {
+        // create read buffer
         let mut data: [i32; 3] = [0; 3];
-        data[0] = (fpga_address::CONF + 4) as i32; // address to request
-        data[1] = 4; // bytes expected to be added to data
+        data[0] = (fpga_address::CONF + 4) as i32;
+        data[1] = 4; // value0(2 bytes) value1(2bytes) // TODO: ask what these values represent
 
         self.read(unsafe { std::mem::transmute::<&mut [i32], &mut [u8]>(&mut data) });
 
+        // extract both u16 numbers from u32
         let value0 = data[2] >> 16; // store 1st 16 bits
         let value1 = !(value0 << 16) & data[2]; // store 2nd 16 bits
         let frequency = (device_info::FPGA_CLOCK * value0 as u32) / value1 as u32;

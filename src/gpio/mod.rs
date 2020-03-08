@@ -102,7 +102,7 @@ impl<'a> Gpio<'a> {
         pins
     }
 
-    /// Shortener to populate a read buffer for GPIO pin information.
+    /// Shortener to populate a read buffer, through `bus.read`, for GPIO pin information.
     fn bus_read(&self, buffer: &mut [u32], buffer_length: u32, address_offset: u16) {
         // address to query
         buffer[0] = (fpga_address::GPIO + address_offset) as u32;
@@ -134,7 +134,7 @@ impl<'a> Gpio<'a> {
         Ok(())
     }
 
-    // TODO: improve by to not have to call a mutex lock for every pin being set
+    // TODO: improve not having to call a mutex lock for every pin being set
     /// Configure multiple pins' mode, function, state, etc..
     pub fn set_configs<T>(&self, pins: &[u8], config: T) -> Result<(), Error>
     where
@@ -149,12 +149,11 @@ impl<'a> Gpio<'a> {
         Ok(())
     }
 
-    /// Shortener to set pin configurations. `value` & `address_offset` are directly passed into the bus' write buffer.
+    /// Shortener to send pin configurations through `bus.write`.
     fn bus_write(&self, value: u16, address_offset: u16) {
-        // create and populate write buffer
         let mut buffer: [u32; 3] = [0; 3];
         buffer[0] = (fpga_address::GPIO + address_offset) as u32; // address to write to
-        buffer[1] = mem::size_of_val(&value) as u32; // byte length of value
+        buffer[1] = 2; // byte length of u16 value
         buffer[2] = value as u32;
 
         self.bus
