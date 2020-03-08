@@ -60,7 +60,7 @@ impl<'a> Gpio<'a> {
         let mut data: [u32; 3] = [0; 3];
 
         // update read buffer
-        self.pin_get(&mut data, 2, 1); // all pin states are encoded as a single u16. 2 bytes needed (8*2 = 16 pins)
+        self.bus_read(&mut data, 2, 1); // all pin states are encoded as a single u16. 2 bytes needed (8*2 = 16 pins)
 
         // bit operation to extract the current pin's state
         let mask = 0x1 << pin;
@@ -82,7 +82,7 @@ impl<'a> Gpio<'a> {
         let mut data: [u32; 3] = [0; 3];
 
         // update read buffer
-        self.pin_get(&mut data, 2, 1); // all pin states are encoded as a single u16. 2 bytes needed (8*2 = 16 pins)
+        self.bus_read(&mut data, 2, 1); // all pin states are encoded as a single u16. 2 bytes needed (8*2 = 16 pins)
 
         // bit operation to extract each pin state (0-15)
         let mut pins: [bool; 16] = [false; 16];
@@ -103,7 +103,7 @@ impl<'a> Gpio<'a> {
     }
 
     /// Shortener to populate a read buffer for GPIO pin information.
-    fn pin_get(&self, buffer: &mut [u32], buffer_length: u32, address_offset: u16) {
+    fn bus_read(&self, buffer: &mut [u32], buffer_length: u32, address_offset: u16) {
         // address to query
         buffer[0] = (fpga_address::GPIO + address_offset) as u32;
         // size of expected data (bytes)
