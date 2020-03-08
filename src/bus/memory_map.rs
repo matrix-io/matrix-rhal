@@ -19,16 +19,16 @@ pub mod mcu_offset {
     pub const MCU: u16 = 0x90;
 }
 
-/* MATRIX device variables */
+/// General MATRIX device information.
 pub mod device_info {
-    pub const MATRIX_CREATOR_LEDS: i32 = 35;
-    pub const MATRIX_VOICE_LEDS: i32 = 18;
+    pub const MATRIX_CREATOR_LEDS: u8 = 35;
+    pub const MATRIX_VOICE_LEDS: u8 = 18;
     pub const MATRIX_CREATOR: i32 = 0x05C344E8;
     pub const MATRIX_VOICE: i32 = 0x6032BAD2;
     pub const FPGA_CLOCK: u32 = 50000000; // Physical OSC = 50MHz
 }
 
-// Request codes for IOCTL.
+/// Request codes for IOCTL read/write functionality.
 pub mod ioctl_code {
     /// IOCTL write request code.
     pub const WRITE: i32 = 1200;

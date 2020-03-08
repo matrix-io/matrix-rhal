@@ -60,7 +60,7 @@ impl<'a> Gpio<'a> {
         let mut data: [u32; 3] = [0; 3];
 
         // update read buffer
-        self.pin_get(&mut data, 2, 1); // all pin states are encoded as a single u16. 2 bytes needed (8*2 = 16 pins)
+        self.bus_read(&mut data, 2, 1); // all pin states are encoded as a single u16. 2 bytes needed (8*2 = 16 pins)
 
         // bit operation to extract the current pin's state
         let mask = 0x1 << pin;
@@ -82,7 +82,7 @@ impl<'a> Gpio<'a> {
         let mut data: [u32; 3] = [0; 3];
 
         // update read buffer
-        self.pin_get(&mut data, 2, 1); // all pin states are encoded as a single u16. 2 bytes needed (8*2 = 16 pins)
+        self.bus_read(&mut data, 2, 1); // all pin states are encoded as a single u16. 2 bytes needed (8*2 = 16 pins)
 
         // bit operation to extract each pin state (0-15)
         let mut pins: [bool; 16] = [false; 16];
@@ -102,8 +102,8 @@ impl<'a> Gpio<'a> {
         pins
     }
 
-    /// Shortener to populate a read buffer for GPIO pin information.
-    fn pin_get(&self, buffer: &mut [u32], buffer_length: u32, address_offset: u16) {
+    /// Shortener to populate a read buffer, through `bus.read`, for GPIO pin information.
+    fn bus_read(&self, buffer: &mut [u32], buffer_length: u32, address_offset: u16) {
         // address to query
         buffer[0] = (fpga_address::GPIO + address_offset) as u32;
         // size of expected data (bytes)
@@ -134,7 +134,7 @@ impl<'a> Gpio<'a> {
         Ok(())
     }
 
-    // TODO: improve by to not have to call a mutex lock for every pin being set
+    // TODO: improve not having to call a mutex lock for every pin being set
     /// Configure multiple pins' mode, function, state, etc..
     pub fn set_configs<T>(&self, pins: &[u8], config: T) -> Result<(), Error>
     where
@@ -149,12 +149,11 @@ impl<'a> Gpio<'a> {
         Ok(())
     }
 
-    /// Shortener to set pin configurations. `value` & `address_offset` are directly passed into the bus' write buffer.
+    /// Shortener to send pin configurations through `bus.write`.
     fn bus_write(&self, value: u16, address_offset: u16) {
-        // create and populate write buffer
         let mut buffer: [u32; 3] = [0; 3];
         buffer[0] = (fpga_address::GPIO + address_offset) as u32; // address to write to
-        buffer[1] = mem::size_of_val(&value) as u32; // byte length of value
+        buffer[1] = 2; // byte length of u16 value
         buffer[2] = value as u32;
 
         self.bus

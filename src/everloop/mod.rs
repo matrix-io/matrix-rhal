@@ -32,9 +32,8 @@ impl<'a> Everloop<'a> {
 
         // create write buffer
         let mut request = Vec::with_capacity(self.bus.device_leds as usize + 2);
-
-        request.push(fpga_address::EVERLOOP as i32); // address to write to
-        request.push((self.bus.device_leds * 4) as i32); // byte length of data to send in write_buffer
+        request.push(fpga_address::EVERLOOP as i32);
+        request.push((self.bus.device_leds * 4) as i32); // each LED RGBW requires 4 bytes
 
         // store all LED colors given
         for led in leds {
