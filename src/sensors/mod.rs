@@ -10,8 +10,6 @@ pub struct Sensors<'a> {
 }
 
 // Read function for each sensor.
-// Each value in a sensor is 4 bytes(f32).
-// The length for bus.read is determined by (# of sensor properties)*4.
 impl<'a> Sensors<'a> {
     /// Creates a new instance of Sensors.
     pub fn new(bus: &Bus) -> Sensors {
@@ -24,10 +22,10 @@ impl<'a> Sensors<'a> {
 
     /// Return the latest UV sensor value.
     pub fn read_uv(&self) -> f32 {
-        // create read buffer
         const BUFFER_LENGTH: usize = get_buffer_length(UV_BYTES);
-        let mut data: [i32; BUFFER_LENGTH] = [0; BUFFER_LENGTH];
 
+        // create read buffer
+        let mut data: [i32; BUFFER_LENGTH] = [0; BUFFER_LENGTH];
         data[0] = (fpga_address::MCU + (mcu_offset::UV >> 1)) as i32;
         data[1] = UV_BYTES;
 
@@ -35,16 +33,15 @@ impl<'a> Sensors<'a> {
         self.bus
             .read(unsafe { std::mem::transmute::<&mut [i32], &mut [u8]>(&mut data) });
 
-        // update UV value
         data[2] as f32 / 1000.0
     }
 
     /// Return the latest Pressure sensor values.
     pub fn read_pressure(&self) -> Pressure {
-        // create read buffer
         const BUFFER_LENGTH: usize = get_buffer_length(PRESSURE_BYTES);
-        let mut data: [i32; BUFFER_LENGTH] = [0; BUFFER_LENGTH];
 
+        // create read buffer
+        let mut data: [i32; BUFFER_LENGTH] = [0; BUFFER_LENGTH];
         data[0] = (fpga_address::MCU + (mcu_offset::PRESSURE >> 1)) as i32;
         data[1] = PRESSURE_BYTES;
 
@@ -61,10 +58,10 @@ impl<'a> Sensors<'a> {
 
     /// Return the latest Humidity sensor values.
     pub fn read_humidity(&self) -> Humidity {
-        // create read buffer
         const BUFFER_LENGTH: usize = get_buffer_length(HUMIDITY_BYTES);
-        let mut data: [i32; BUFFER_LENGTH] = [0; BUFFER_LENGTH];
 
+        // create read buffer
+        let mut data: [i32; BUFFER_LENGTH] = [0; BUFFER_LENGTH];
         data[0] = (fpga_address::MCU + (mcu_offset::HUMIDITY >> 1)) as i32;
         data[1] = HUMIDITY_BYTES;
 
@@ -80,10 +77,10 @@ impl<'a> Sensors<'a> {
 
     /// Return the latest IMU sensor values.
     pub fn read_imu(&self) -> Imu {
-        // create read buffer
         const BUFFER_LENGTH: usize = get_buffer_length(IMU_BYTES);
-        let mut data: [i32; BUFFER_LENGTH] = [0; BUFFER_LENGTH];
 
+        // create read buffer
+        let mut data: [i32; BUFFER_LENGTH] = [0; BUFFER_LENGTH];
         data[0] = (fpga_address::MCU + (mcu_offset::IMU >> 1)) as i32;
         data[1] = IMU_BYTES;
 
@@ -118,8 +115,10 @@ impl<'a> Sensors<'a> {
 }
 
 /// Calculate the size a read buffer needs to be for a sensor.
-/// Since all sensor's values are a byte each, we can divide it by 4 to see how many values we have to store.
-/// 2 is added to make room for the FPGA address and the number of bytes to allocate in the IOCTL read call.
+///
+/// Since all sensor's values are a byte each, we can divide it by 4 to see how many values need to be stored.
+///
+/// 2 is added to make room for the `address` and `byte_length` of `bus.read`.
 const fn get_buffer_length(sensor_bytes: i32) -> usize {
     (sensor_bytes / 4 + 2) as usize
 }
