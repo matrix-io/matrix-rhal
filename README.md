@@ -29,8 +29,8 @@ Below are the current/planned features in RHAL. While this library is being put 
   - [x] IMU
 - [x] Everloop
 - [x] GPIO
-  - [x] Digital Read/Write
-  - [x] PWM Write
+  - [x] Digital Input/Output
+  - [x] PWM
 - [ ] Microphone
 - [ ] Documentation
 
