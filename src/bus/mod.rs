@@ -59,15 +59,15 @@ impl Bus {
     ///
     /// # Usage
     ///  ```
-    ///  let value: u16 = 237;
+    ///  let some_value: u16 = 237;
     ///  let mut buffer: [u32; 3] = [0; 3];
     ///     
     ///  // address to query
     ///  buffer[0] = (fpga_address::GPIO + address_offset) as u32;
-    ///  // bytes of data being sent (u16 = 2 bytes)
+    ///  // byte length of data (u16 = 2 bytes)
     ///  buffer[1] = 2;
-    ///  // data to send
-    ///  buffer[2] = value as i32;
+    ///  // data being sent
+    ///  buffer[2] = some_value as i32;
     ///
     ///  // send buffer
     ///  self.bus.write(unsafe { std::mem::transmute::<&mut [u32], &mut [u8]>(&mut buffer) });
