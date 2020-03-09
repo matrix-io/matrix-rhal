@@ -5,7 +5,6 @@ pub mod config;
 use crate::bus::memory_map::*;
 pub use bank::*;
 pub use config::*;
-use std::mem;
 use std::sync::Mutex;
 
 /// Controls the GPIO pins on a MATRIX device.
