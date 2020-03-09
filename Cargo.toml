@@ -1,6 +1,6 @@
 [package]
 name = "matrix_rhal"
-version = "0.0.5"
+version = "0.0.6"
 authors = ["Carlos Chacin"]
 edition = "2018"
 readme = "README.md"

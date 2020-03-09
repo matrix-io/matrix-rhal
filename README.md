@@ -14,7 +14,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-matrix_rhal = "0.0.5"
+matrix_rhal = "0.0.6"
 ```
 
 # Roadmap
