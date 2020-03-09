@@ -36,7 +36,7 @@ impl<'a> Gpio<'a> {
         }
     }
 
-    /// A simple check to make sure a selected pin Exists
+    /// A quick check to make sure a selected pin exists. Pins available are from `0-15`.
     fn is_pin_valid(pin: u8) -> Result<(), Error> {
         if pin > 15 {
             return Err(Error::InvalidGpioPin);
@@ -190,6 +190,60 @@ impl<'a> Gpio<'a> {
         let bank = &self.banks.lock()?[0];
         bank.set_period(period_counter as u16);
         bank.set_duty(channel, duty_counter);
+
+        Ok(())
+    }
+
+    /// Abstraction over `set_pwm` to easily control a servo.
+    ///
+    /// `min_pulse_ms` accepts values from `0` to `1.5`. Inputs outside this range will be set to the closest valid number.
+    pub fn set_servo_angle(&self, pin: u8, angle: u32, min_pulse_ms: f32) -> Result<(), Error> {
+        Gpio::is_pin_valid(pin)?;
+
+        // prevent min_pulse_ms from exceeding the valid range
+        let mut min_pulse_ms = min_pulse_ms;
+        if min_pulse_ms > 1.5 {
+            min_pulse_ms = 1.5;
+        } else if min_pulse_ms < 0.0 {
+            min_pulse_ms = 0.0;
+        }
+
+        // We choose a prescaler of 32 to work with a lower frequency
+        const GPIO_PRESCALER: u16 = 0x5;
+
+        // We need 50Hz for servo, so 1 / 50Hz = 0.02 sec (https://en.wikipedia.org/wiki/Servo_(radio_control))
+        const PERIOD_SECONDS: f32 = 0.02;
+
+        /*
+        Getting period_counter to generate 50Hz:
+        FPGAClock = 150000000
+        FPGAClockAfterPrescaler = 150000000 / 32 = 4687500
+        Period counter required for 50Hz
+        period_counter = 0.02 / ( 1 / 4687500 ) = 93750
+        FPGA firmware need only half of the period counter
+        half_period_counter = period_counter / 2 = 46875
+        When all math is combined you get
+        final_period_counter = (period_seconds * FPGAClock / ((1 << GPIOPrescaler) * 2);
+        */
+        let period_counter: u32 = ((PERIOD_SECONDS * self.bus.fpga_frequency as f32)
+            / (((1 << GPIO_PRESCALER) * 2) as f32)) as u32;
+
+        // Servo pulse width is symmetrical, with 1.5ms as neutral position
+        // 1.5ms / 20ms = 0.075
+        let servo_middle = (period_counter as f32 * 0.075) as u32;
+        let servo_offset = (period_counter as f32 * (min_pulse_ms / 20.0)) as u32;
+        let servo_ratio = (servo_middle - servo_offset) / 90;
+
+        let duty_counter = (servo_ratio * angle as u32) + servo_offset;
+
+        let bank = pin / 4;
+        let channel = pin % 4;
+
+        // apply PWM for desired servo angle
+        self.set_prescaler(bank as usize, GPIO_PRESCALER)?;
+        let bank = &self.banks.lock()?[0];
+        bank.set_period(period_counter as u16);
+        bank.set_duty(channel as u16, duty_counter as u16);
 
         Ok(())
     }
