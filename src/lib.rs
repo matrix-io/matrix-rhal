@@ -2,6 +2,7 @@ mod bus;
 mod error;
 mod everloop;
 pub mod gpio;
+pub mod microphone;
 mod sensors;
 
 pub use bus::Bus;
