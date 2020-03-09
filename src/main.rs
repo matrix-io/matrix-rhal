@@ -12,12 +12,12 @@ fn main() {
 
     everloop.set_all(hal::Rgbw::black());
 
-    test_gpio_set_value(&gpio);
-    test_gpio_pwm(&gpio);
+    // test_gpio_set_value(&gpio);
+    // test_gpio_pwm(&gpio);
+    //test_gpio_set_servo(&gpio);
 
     // loop {
     //     println!("{:?}", gpio.get_states());
-
     //     // delay(100);
     // }
 }
@@ -33,6 +33,12 @@ fn test_gpio_pwm(gpio: &hal::Gpio) {
     gpio.set_config(2, Function::Pwm).unwrap();
     gpio.set_config(2, Mode::Output).unwrap();
     gpio.set_pwm(2, 50.0, 50.0).unwrap();
+}
+
+fn test_gpio_set_servo(gpio: &hal::Gpio) {
+    gpio.set_config(3, Function::Pwm).unwrap();
+    gpio.set_config(3, Mode::Output).unwrap();
+    gpio.set_servo_angle(3, 0, 0.7).unwrap();
 }
 
 fn test_sensors(sensors: &hal::Sensors) {
