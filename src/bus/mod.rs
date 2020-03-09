@@ -57,8 +57,6 @@ impl Bus {
         };
         bus.fpga_frequency = bus.get_fpga_frequency()?;
 
-        println!("{:?}", bus);
-
         Ok(bus)
     }
 

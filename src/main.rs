@@ -14,7 +14,7 @@ fn main() {
 
     // test_gpio_set_value(&gpio);
     // test_gpio_pwm(&gpio);
-    //test_gpio_set_servo(&gpio);
+    test_gpio_set_servo(&gpio);
 
     // loop {
     //     println!("{:?}", gpio.get_states());
@@ -38,7 +38,10 @@ fn test_gpio_pwm(gpio: &hal::Gpio) {
 fn test_gpio_set_servo(gpio: &hal::Gpio) {
     gpio.set_config(3, Function::Pwm).unwrap();
     gpio.set_config(3, Mode::Output).unwrap();
+
     gpio.set_servo_angle(3, 0, 0.7).unwrap();
+    delay(2000);
+    gpio.set_servo_angle(3, 180, 0.7).unwrap();
 }
 
 fn test_sensors(sensors: &hal::Sensors) {
