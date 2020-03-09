@@ -22,6 +22,8 @@ pub struct Bus {
     pub regmap_fd: std::os::unix::io::RawFd,
     /// Type of MATRIX device that's currently attached.
     pub device_name: Device,
+    /// The version of the board.
+    pub device_version: u32,
     /// Number of LEDS on the MATRIX device.
     pub device_leds: u8,
     /// Frequency of the FPGA on the MATRIX device.
@@ -35,6 +37,7 @@ impl Bus {
             device_file: "/dev/matrixio_regmap",
             regmap_fd: 0,
             device_name: Device::Unknown,
+            device_version: 0,
             device_leds: 0,
             fpga_frequency: 0,
         };
@@ -43,13 +46,18 @@ impl Bus {
         bus.regmap_fd = open(bus.device_file, OFlag::O_RDWR, Mode::empty())?;
 
         // fetch information on the current MATRIX device
-        bus.device_name = bus.get_device_name()?;
+        let (name, version) = bus.get_device_info()?;
+        bus.device_name = name;
+        bus.device_version = version;
+
         bus.device_leds = match bus.device_name {
             Device::Creator => device_info::MATRIX_CREATOR_LEDS,
             Device::Voice => device_info::MATRIX_VOICE_LEDS,
             _ => panic!("Cannot determine number of LEDs on device (This is a hard-coded value)."),
         };
         bus.fpga_frequency = bus.get_fpga_frequency()?;
+
+        println!("{:?}", bus);
 
         Ok(bus)
     }
@@ -80,7 +88,7 @@ impl Bus {
     }
 
     /// Send a read buffer to the MATRIX Kernel Modules. The buffer requires an `address` to request and
-    /// the `byte_length` of that's expected to be returned. Once sent, the buffer return with populated
+    /// the `byte_length` of what's expected to be returned. Once sent, the buffer return with populated
     /// data.
     ///
     /// Keep in mind, the returned buffer will still have the `address` and `byte_length` that was passed.
@@ -112,23 +120,25 @@ impl Bus {
         close(self.regmap_fd).unwrap();
     }
 
-    /// Return the type of MATRIX device being used.
-    fn get_device_name(&self) -> Result<Device, Error> {
+    /// Return the type of MATRIX device being used and the version of the board.
+    fn get_device_info(&self) -> Result<(Device, u32), Error> {
         // create read buffer
         let mut data: [i32; 4] = [0; 4];
         data[0] = fpga_address::CONF as i32;
         data[1] = 8; // device_name(4 bytes) device_version(4 bytes)
 
         self.read(unsafe { std::mem::transmute::<&mut [i32], &mut [u8]>(&mut data) });
-
         let device_name = data[2];
-        // let device_version = self.rx_buffer[3]; // currently unused
+        let device_version = data[3];
 
-        match device_name {
-            device_info::MATRIX_CREATOR => Ok(Device::Creator),
-            device_info::MATRIX_VOICE => Ok(Device::Voice),
-            _ => Err(Error::UnknownDevice),
-        }
+        Ok((
+            match device_name {
+                device_info::MATRIX_CREATOR => Device::Creator,
+                device_info::MATRIX_VOICE => Device::Voice,
+                _ => return Err(Error::UnknownDevice),
+            },
+            device_version as u32,
+        ))
     }
 
     /// Updates the Bus to have the last known FPGA frequency of the MATRIX device.
