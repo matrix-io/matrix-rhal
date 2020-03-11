@@ -107,9 +107,9 @@ impl<'a> Sensors<'a> {
             mag_offset_z: data[13] as f32,
 
             // These values are already floats so we just need to treat them as one.
-            yaw: unsafe { std::mem::transmute::<i32, f32>(data[14]) },
-            pitch: unsafe { std::mem::transmute::<i32, f32>(data[15]) },
-            roll: unsafe { std::mem::transmute::<i32, f32>(data[16]) },
+            yaw: f32::from_bits(data[14] as u32),
+            pitch: f32::from_bits(data[15] as u32),
+            roll: f32::from_bits(data[16] as u32),
         }
     }
 }

@@ -1,4 +1,4 @@
-mod bus;
+pub mod bus;
 mod error;
 mod everloop;
 pub mod gpio;

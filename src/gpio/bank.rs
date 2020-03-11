@@ -38,7 +38,7 @@ impl<'a> Bank<'a> {
         let mut gpio_base_address = fpga_address::GPIO + 4;
         for mut bank in &mut banks {
             bank.memory_offset = gpio_base_address;
-            gpio_base_address = gpio_base_address + 6;
+            gpio_base_address += 6;
         }
 
         banks

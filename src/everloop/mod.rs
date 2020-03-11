@@ -19,8 +19,10 @@ impl<'a> Everloop<'a> {
     ///
     /// # Example
     /// ```
+    /// # let bus = matrix_rhal::Bus::init().unwrap();
+    /// let everloop = matrix_rhal::Everloop::new(&bus);
     /// // Set 15 LEDs to blue and the remaining to black
-    /// everloop.set(&vec![hal::Rgbw::new(0,0,255,0); 15]);
+    /// everloop.set(&vec![matrix_rhal::Rgbw::new(0,0,255,0); 15]);
     /// ```
     pub fn set(&self, leds: &[Rgbw]) {
         if leds.len() > self.bus.device_leds as usize {
@@ -37,13 +39,12 @@ impl<'a> Everloop<'a> {
 
         // store all LED colors given
         for led in leds {
-            request
-                .push(unsafe { std::mem::transmute::<[u8; 4], i32>([led.r, led.g, led.b, led.w]) });
+            request.push(led.as_bytes());
         }
 
         // set remaining LEDs to black
         for _ in 0..(request.capacity() - request.len()) {
-            request.push(unsafe { std::mem::transmute::<[u8; 4], i32>([0, 0, 0, 0]) })
+            request.push(Rgbw::black().as_bytes())
         }
 
         // render LEDs
