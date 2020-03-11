@@ -1,27 +1,21 @@
 pub mod memory_map;
 use crate::{error::Error, Device};
 use memory_map::*;
-extern crate spidev;
-use nix::fcntl::{open, OFlag};
+use nix::fcntl::{open, OFlag}; // https://linux.die.net/man/3/open
 use nix::sys::stat::Mode;
 use nix::unistd::close;
 use nix::{ioctl_read_bad, ioctl_write_ptr_bad};
 
-//io!, ior!, iow!, and iorw! has been renamed to request_code_none!, request_code_read!, request_code_write!, and request_code_readwrite! respectively.
-use nix::{request_code_read, request_code_write};
-
-// spi imports
-use spidev::{SpiModeFlags, Spidev, SpidevOptions, SpidevTransfer};
-use std::io;
-use std::io::prelude::*;
-
+// Generate ioctl_read() function
 ioctl_read_bad!(ioctl_read, ioctl_code::READ, [u8]);
+
+// Generate ioctl_write() function
 ioctl_write_ptr_bad!(ioctl_write, ioctl_code::WRITE, [u8]);
 
 /// Bridge for talking to the MATRIX Kernel Modules.
 /// Most, if not all, MATRIX functionality requires this Bus to read and write data.
 #[derive(Debug)]
-pub struct Bus {
+pub struct KernelBus {
     /// Path for the device file being used. This is what's used to communicate with the MATRIX Kernel.
     pub device_file: &'static str,
     /// File descriptor for kernel abstraction.
@@ -34,69 +28,95 @@ pub struct Bus {
     pub device_leds: u8,
     /// Frequency of the FPGA on the MATRIX device.
     pub fpga_frequency: u32,
-
-    // SPI params
-    spi_fd: i32,
-    spi_mode: u32,
-    spi_bits: u32,
-    spi_speed: u32,
-    spi_delay: u32,
 }
 
-impl Bus {
+impl KernelBus {
     /// Create, initialize, and return a MATRIX Bus
     pub fn init() -> Result<Bus, Error> {
         let mut bus = Bus {
-            device_file: "/dev/spidev0.0",
+            device_file: "/dev/matrixio_regmap",
             regmap_fd: 0,
             device_name: Device::Unknown,
             device_version: 0,
             device_leds: 0,
             fpga_frequency: 0,
-            spi_fd: 0,
-            spi_mode: 3,
-            spi_bits: 8,
-            spi_speed: 15000000,
-            spi_delay: 0,
         };
 
         // open the file descriptor to communicate with the MATRIX kernel
         bus.regmap_fd = open(bus.device_file, OFlag::O_RDWR, Mode::empty())?;
 
-        // - All SPI Magic Numbers
-        const SPI_IOC_MAGIC: u8 = b'k'; // Defined in linux/spi/spidev.h
+        // fetch information on the current MATRIX device
+        let (name, version) = bus.get_device_info()?;
+        bus.device_name = name;
+        bus.device_version = version;
 
-        // * Read Numbers
-        let spi_ioc_rd_mode = request_code_read!(SPI_IOC_MAGIC, 1, 1);
-        assert_eq!(spi_ioc_rd_mode, 2147576577);
+        bus.device_leds = match bus.device_name {
+            Device::Creator => device_info::MATRIX_CREATOR_LEDS,
+            Device::Voice => device_info::MATRIX_VOICE_LEDS,
+            _ => panic!("Cannot determine number of LEDs on device (This is a hard-coded value)."),
+        };
+        bus.fpga_frequency = bus.get_fpga_frequency()?;
 
-        let spi_ioc_rd_bits_per_word = request_code_read!(SPI_IOC_MAGIC, 3, 1);
-        assert_eq!(spi_ioc_rd_bits_per_word, 2147576579);
-
-        let spi_ioc_rd_max_speed_hz = request_code_read!(SPI_IOC_MAGIC, 4, 4);
-        assert_eq!(spi_ioc_rd_max_speed_hz, 2147773188);
-
-        // * Write Numbers
-        let spi_ioc_wr_mode = request_code_write!(SPI_IOC_MAGIC, 1, 1);
-        assert_eq!(spi_ioc_wr_mode, 1073834753);
-
-        let spi_ioc_wr_bits_per_word = request_code_write!(SPI_IOC_MAGIC, 3, 1);
-        assert_eq!(spi_ioc_wr_bits_per_word, 1073834755);
-
-        let spi_ioc_wr_max_speed_hz = request_code_write!(SPI_IOC_MAGIC, 4, 4);
-        assert_eq!(spi_ioc_wr_max_speed_hz, 1074031364);
-
-        // remove after testing
-        println!("-------------------------------------------\n");
-        Err(Error::InvalidGpioPin)
+        Ok(bus)
     }
 
-    pub fn write(&self, write_buffer: &mut [u8]) {}
+    /// Send a write buffer to the MATRIX Kernel Modules. The buffer requires an `address` to request,
+    /// the `byte_length` of the data being given, and then the rest of the data itself.
+    ///
+    /// # Usage
+    ///  ```
+    ///  let some_value: u16 = 237;
+    ///  let mut buffer: [u32; 3] = [0; 3];
+    ///     
+    ///  // address to query
+    ///  buffer[0] = (fpga_address::GPIO + address_offset) as u32;
+    ///  // byte length of data (u16 = 2 bytes)
+    ///  buffer[1] = 2;
+    ///  // data being sent
+    ///  buffer[2] = some_value as i32;
+    ///
+    ///  // send buffer
+    ///  self.bus.write(unsafe { std::mem::transmute::<&mut [u32], &mut [u8]>(&mut buffer) });
+    ///  ```
+    pub fn write(&self, write_buffer: &mut [u8]) {
+        unsafe {
+            // TODO: error handling. Not sure if an error here would be worth recovering from.
+            ioctl_write(self.regmap_fd, write_buffer).expect("error in IOCTL WRITE");
+        }
+    }
 
-    pub fn read(&self, read_buffer: &mut [u8]) {}
+    /// Send a read buffer to the MATRIX Kernel Modules. The buffer requires an `address` to request and
+    /// the `byte_length` of what's expected to be returned. Once sent, the buffer return with populated
+    /// data.
+    ///
+    /// Keep in mind, the returned buffer will still have the `address` and `byte_length` that was passed.
+    ///
+    /// # Usage
+    ///  ```
+    ///  let mut buffer: [u32; 4] = [0; 4];
+    ///
+    ///  // address to query
+    ///  buffer[0] = (fpga_address::CONF) as u32;
+    ///  // bytes being requested
+    ///  buffer[1] = 8;
+    ///
+    ///  // populate buffer
+    ///  bus.read(unsafe { std::mem::transmute::<&mut [u32], &mut [u8]>(buffer) });
+    ///
+    ///  // returned data will start at buffer[2]
+    ///  println!("{:?}", buffer);
+    ///  ```
+    pub fn read(&self, read_buffer: &mut [u8]) {
+        unsafe {
+            // TODO: error handling. Not sure if an error here would be worth recovering from.
+            ioctl_read(self.regmap_fd, read_buffer).expect("error in IOCTL READ");
+        }
+    }
 
     /// Close the file descriptor that's communicating with the MATRIX Kernel's device file.
-    pub fn close(&self) {}
+    pub fn close(&self) {
+        close(self.regmap_fd).unwrap();
+    }
 
     /// Return the type of MATRIX device being used and the version of the board.
     fn get_device_info(&self) -> Result<(Device, u32), Error> {
