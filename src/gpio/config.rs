@@ -1,9 +1,10 @@
 use super::Gpio;
+use crate::bus::MatrixBus;
 use crate::error::Error;
 
 pub trait PinConfig {
     /// Returns a tuple of a number (binary representation of each pin config) and an FPGA address offset for the config being changed.
-    fn update_pin_map(&self, pin: u8, gpio: &Gpio) -> Result<(u16, u16), Error>;
+    fn update_pin_map<B: MatrixBus>(&self, pin: u8, gpio: &Gpio<B>) -> Result<(u16, u16), Error>;
 }
 
 /// Represents a pin being used for `Output` or `Input`.
@@ -14,7 +15,7 @@ pub enum Mode {
 }
 
 impl PinConfig for Mode {
-    fn update_pin_map(&self, pin: u8, gpio: &Gpio) -> Result<(u16, u16), Error> {
+    fn update_pin_map<B: MatrixBus>(&self, pin: u8, gpio: &Gpio<B>) -> Result<(u16, u16), Error> {
         let pin_map = &mut *gpio.mode_pin_map.lock()?;
         Ok((set_pin_config(pin, *self as u16, pin_map), 0))
     }
@@ -28,7 +29,7 @@ pub enum State {
 }
 
 impl PinConfig for State {
-    fn update_pin_map(&self, pin: u8, gpio: &Gpio) -> Result<(u16, u16), Error> {
+    fn update_pin_map<B: MatrixBus>(&self, pin: u8, gpio: &Gpio<B>) -> Result<(u16, u16), Error> {
         let pin_map = &mut *gpio.state_pin_map.lock()?;
         Ok((set_pin_config(pin, *self as u16, pin_map), 1))
     }
@@ -42,7 +43,7 @@ pub enum Function {
 }
 
 impl PinConfig for Function {
-    fn update_pin_map(&self, pin: u8, gpio: &Gpio) -> Result<(u16, u16), Error> {
+    fn update_pin_map<B: MatrixBus>(&self, pin: u8, gpio: &Gpio<B>) -> Result<(u16, u16), Error> {
         let pin_map = &mut *gpio.function_pin_map.lock()?;
         Ok((set_pin_config(pin, *self as u16, pin_map), 2))
     }

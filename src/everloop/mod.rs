@@ -1,17 +1,16 @@
 mod led;
-use crate::bus::memory_map::*;
-use crate::Bus;
+use crate::bus::{memory_map::*, MatrixBus};
 pub use led::Rgbw;
 
 /// Controls the ring of LEDS on a MATRIX device.
 #[derive(Debug)]
-pub struct Everloop<'a> {
-    bus: &'a Bus,
+pub struct Everloop<'a, B> {
+    bus: &'a B,
 }
 
-impl<'a> Everloop<'a> {
+impl<'a, B: MatrixBus> Everloop<'a, B> {
     /// Return an instance of Everloop.
-    pub fn new(bus: &Bus) -> Everloop {
+    pub fn new(bus: &B) -> Everloop<B> {
         Everloop { bus }
     }
 
@@ -25,17 +24,16 @@ impl<'a> Everloop<'a> {
     /// everloop.set(&vec![matrix_rhal::Rgbw::new(0,0,255,0); 15]);
     /// ```
     pub fn set(&self, leds: &[Rgbw]) {
-        if leds.len() > self.bus.device_leds as usize {
-            panic!(
-                "Invalid LED set. This device only has {} LEDs",
-                self.bus.device_leds
-            );
+        let device_leds = self.bus.get_device_leds();
+
+        if leds.len() > device_leds as usize {
+            panic!("Invalid LED set. This device only has {} LEDs", device_leds);
         }
 
         // create write buffer
-        let mut request = Vec::with_capacity(self.bus.device_leds as usize + 2);
+        let mut request = Vec::with_capacity(device_leds as usize + 2);
         request.push(fpga_address::EVERLOOP as i32);
-        request.push((self.bus.device_leds * 4) as i32); // each LED RGBW requires 4 bytes
+        request.push((device_leds * 4) as i32); // each LED RGBW requires 4 bytes
 
         // store all LED colors given
         for led in leds {
@@ -54,8 +52,10 @@ impl<'a> Everloop<'a> {
 
     /// Set all MATRIX LEDs to a single color
     pub fn set_all(&self, color: Rgbw) {
+        let device_leds = self.bus.get_device_leds() as usize;
+
         let mut leds = Vec::new();
-        leds.extend(std::iter::repeat(color).take(self.bus.device_leds as usize));
+        leds.extend(std::iter::repeat(color).take(device_leds));
 
         self.set(&leds)
     }

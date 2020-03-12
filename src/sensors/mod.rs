@@ -1,19 +1,19 @@
-use crate::bus::memory_map::*;
-use crate::{Bus, Device};
+use crate::bus::{memory_map::*, MatrixBus};
+use crate::Device;
 mod data;
 use data::*;
 
 /// Communicates with the main sensors on the MATRIX Creator.
 #[derive(Debug)]
 pub struct Sensors<'a> {
-    pub bus: &'a Bus,
+    pub bus: &'a (dyn MatrixBus + 'a),
 }
 
 // Read function for each sensor.
 impl<'a> Sensors<'a> {
     /// Creates a new instance of Sensors.
-    pub fn new(bus: &Bus) -> Sensors {
-        if bus.device_name != Device::Creator {
+    pub fn new(bus: &'a impl MatrixBus) -> Sensors {
+        if bus.get_device_name() != Device::Creator {
             panic!("Sensors are only available on the MATRIX Creator!")
         }
 
