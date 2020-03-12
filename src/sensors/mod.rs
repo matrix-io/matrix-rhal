@@ -5,14 +5,14 @@ use data::*;
 
 /// Communicates with the main sensors on the MATRIX Creator.
 #[derive(Debug)]
-pub struct Sensors<'a> {
-    pub bus: &'a dyn MatrixBus,
+pub struct Sensors {
+    pub bus: &'static dyn MatrixBus,
 }
 
 // Read function for each sensor.
-impl<'a> Sensors<'a> {
+impl<'a> Sensors {
     /// Creates a new instance of Sensors.
-    pub fn new(bus: &impl MatrixBus) -> Sensors {
+    pub fn new(bus: &'static dyn MatrixBus) -> Sensors {
         if bus.get_device_name() != Device::Creator {
             panic!("Sensors are only available on the MATRIX Creator!")
         }

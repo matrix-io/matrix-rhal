@@ -68,3 +68,7 @@ pub trait MatrixBus: std::fmt::Debug + Sync {
 pub fn init() -> Result<impl MatrixBus, Error> {
     Ok(kernel::Bus::init()?)
 }
+
+pub struct Bus {
+    wish_bone: MatrixBus,
+}

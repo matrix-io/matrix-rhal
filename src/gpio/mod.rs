@@ -8,8 +8,8 @@ use std::sync::Mutex;
 
 /// Controls the GPIO pins on a MATRIX device.
 #[derive(Debug)]
-pub struct Gpio<'a, B> {
-    bus: &'a B,
+pub struct Gpio {
+    bus: &'static dyn MatrixBus,
     /// Current setting of each pin's mode (binary representation).
     mode_pin_map: Mutex<u16>,
     /// Current setting of each pin's state (binary representation).
@@ -19,12 +19,12 @@ pub struct Gpio<'a, B> {
     /// Current setting of each bank's prescaler (binary representation).
     prescaler_bank_map: Mutex<u16>,
     /// Current state of each GPIO Bank.
-    banks: Mutex<Vec<Bank<'a, B>>>,
+    banks: Mutex<Vec<Bank>>,
 }
 
-impl<'a, B: MatrixBus> Gpio<'a, B> {
+impl Gpio {
     /// Returns an instance of GPIO.
-    pub fn new(bus: &B) -> Gpio<B> {
+    pub fn new(bus: &'static dyn MatrixBus) -> Gpio {
         Gpio {
             bus,
             mode_pin_map: Mutex::new(0x0),
@@ -48,11 +48,11 @@ impl<'a, B: MatrixBus> Gpio<'a, B> {
 ///////////////////////////////
 // Get Functions
 //////////////////////////////
-impl<'a, B: MatrixBus> Gpio<'a, B> {
+impl Gpio {
     /// Returns the current digital value of a MATRIX GPIO pin (0->15).
     pub fn get_state(&self, pin: u8) -> bool {
         // TODO: add error check
-        Gpio::<B>::is_pin_valid(pin).unwrap();
+        Gpio::is_pin_valid(pin).unwrap();
 
         // create read buffer
         let mut data: [u32; 3] = [0; 3];
@@ -117,10 +117,10 @@ impl<'a, B: MatrixBus> Gpio<'a, B> {
 ///////////////////////////////
 // Set Functions
 //////////////////////////////
-impl<'a, B: MatrixBus> Gpio<'a, B> {
+impl Gpio {
     /// Configure a specific pin's mode, function, state, etc..
     pub fn set_config<T>(&self, pin: u8, config: impl PinConfig) -> Result<(), Error> {
-        Gpio::<B>::is_pin_valid(pin)?;
+        Gpio::is_pin_valid(pin)?;
 
         // update and send pin config to matrix bus
         let (value, fpga_address_offset) = config.update_pin_map(pin, self)?;
@@ -165,7 +165,7 @@ impl<'a, B: MatrixBus> Gpio<'a, B> {
 
     /// Set the Pulse Width Modulation output for a pin.
     pub fn set_pwm(&self, pin: u8, frequency: f32, percentage: f32) -> Result<(), Error> {
-        Gpio::<B>::is_pin_valid(pin)?;
+        Gpio::is_pin_valid(pin)?;
 
         const GPIO_PRESCALER: u16 = 0x5;
         let period_seconds = 1.0 / frequency;
@@ -191,7 +191,7 @@ impl<'a, B: MatrixBus> Gpio<'a, B> {
     ///
     /// `min_pulse_ms` accepts values from `0` to `1.5`. Inputs outside this range will be set to the closest valid number.
     pub fn set_servo_angle(&self, pin: u8, angle: u32, min_pulse_ms: f32) -> Result<(), Error> {
-        Gpio::<B>::is_pin_valid(pin)?;
+        Gpio::is_pin_valid(pin)?;
 
         // prevent min_pulse_ms from exceeding the valid range
         let mut min_pulse_ms = min_pulse_ms;

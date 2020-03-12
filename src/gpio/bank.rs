@@ -11,23 +11,16 @@ use crate::bus::{memory_map::*, MatrixBus};
 ///
 /// Bank 3: pins (13->16)
 #[derive(Debug, Clone)]
-pub struct Bank<'a, B> {
-    bus: &'a B,
+pub struct Bank {
+    bus: &'static dyn MatrixBus,
     /// FPGA memory offset
     pub memory_offset: u16,
     pub timer_setup: u16,
 }
 
-#[derive(Clone)]
-struct Y<C>(C);
-impl<C: ::std::marker::Copy> ::std::marker::Copy for Y<C> where C: ::std::marker::Copy {}
-
-#[automatically_derived]
-impl<'a, B: ::std::marker::Copy> ::std::marker::Copy for Bank<'a, B> where B: ::std::marker::Copy {}
-
-impl<'a, B: MatrixBus> Bank<'a, B> {
+impl Bank {
     /// Create a new instance of GPIO Bank.
-    pub fn new(bus: &B) -> Bank<B> {
+    pub fn new(bus: &'static dyn MatrixBus) -> Bank {
         Bank {
             bus,
             memory_offset: 0x0,
@@ -36,10 +29,10 @@ impl<'a, B: MatrixBus> Bank<'a, B> {
     }
 
     /// Create 4 banks configured for use in a MATRIX device.
-    pub fn new_set(bus: &B) -> Vec<Bank<B>> {
+    pub fn new_set(bus: &'static dyn MatrixBus) -> Vec<Bank> {
         // create a bank for each set of 4 pins
         // TODO: follow issue with derive clone on structs with a generic type: https://github.com/rust-lang/rust/issues/26925
-        let mut banks: Vec<Bank<B>> = vec![
+        let mut banks: Vec<Bank> = vec![
             Bank::new(bus),
             Bank::new(bus),
             Bank::new(bus),
