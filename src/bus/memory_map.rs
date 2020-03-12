@@ -23,9 +23,9 @@ pub mod mcu_offset {
 pub mod device_info {
     pub const MATRIX_CREATOR_LEDS: u8 = 35;
     pub const MATRIX_VOICE_LEDS: u8 = 18;
-    pub const MATRIX_CREATOR: i32 = 0x05C344E8;
-    pub const MATRIX_VOICE: i32 = 0x6032BAD2;
-    pub const FPGA_CLOCK: u32 = 50000000; // Physical OSC = 50MHz
+    pub const MATRIX_CREATOR: i32 = 0x05C3_44E8;
+    pub const MATRIX_VOICE: i32 = 0x6032_BAD2;
+    pub const FPGA_CLOCK: u32 = 50_000_000; // Physical OSC = 50MHz
 }
 
 /// Request codes for IOCTL read/write functionality.

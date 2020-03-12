@@ -65,18 +65,21 @@ impl Bus {
     ///
     /// # Usage
     ///  ```
+    ///  let bus = matrix_rhal::Bus::init().unwrap();
+    ///
+    ///  # let address_offset = 0;
     ///  let some_value: u16 = 237;
     ///  let mut buffer: [u32; 3] = [0; 3];
     ///     
     ///  // address to query
-    ///  buffer[0] = (fpga_address::GPIO + address_offset) as u32;
+    ///  buffer[0] = (matrix_rhal::bus::memory_map::fpga_address::GPIO + address_offset) as u32;
     ///  // byte length of data (u16 = 2 bytes)
     ///  buffer[1] = 2;
     ///  // data being sent
-    ///  buffer[2] = some_value as i32;
+    ///  buffer[2] = some_value as u32;
     ///
     ///  // send buffer
-    ///  self.bus.write(unsafe { std::mem::transmute::<&mut [u32], &mut [u8]>(&mut buffer) });
+    ///  bus.write(unsafe { std::mem::transmute::<&mut [u32], &mut [u8]>(&mut buffer) });
     ///  ```
     pub fn write(&self, write_buffer: &mut [u8]) {
         unsafe {
@@ -93,15 +96,16 @@ impl Bus {
     ///
     /// # Usage
     ///  ```
+    ///  let bus = matrix_rhal::Bus::init().unwrap();
     ///  let mut buffer: [u32; 4] = [0; 4];
     ///
     ///  // address to query
-    ///  buffer[0] = (fpga_address::CONF) as u32;
+    ///  buffer[0] = (matrix_rhal::bus::memory_map::fpga_address::CONF) as u32;
     ///  // bytes being requested
     ///  buffer[1] = 8;
     ///
     ///  // populate buffer
-    ///  bus.read(unsafe { std::mem::transmute::<&mut [u32], &mut [u8]>(buffer) });
+    ///  bus.read(unsafe { std::mem::transmute::<&mut [u32], &mut [u8]>(&mut buffer) });
     ///
     ///  // returned data will start at buffer[2]
     ///  println!("{:?}", buffer);

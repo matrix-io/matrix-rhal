@@ -42,8 +42,7 @@ impl From<nix::Error> for Error {
     }
 }
 
-use std::sync::MutexGuard;
-use std::sync::PoisonError;
+use std::sync::{MutexGuard, PoisonError};
 impl<T> From<PoisonError<MutexGuard<'_, T>>> for Error {
     fn from(_: PoisonError<MutexGuard<T>>) -> Self {
         Error::PoisonedMutex

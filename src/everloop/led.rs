@@ -22,4 +22,8 @@ impl Rgbw {
     pub fn white() -> Self {
         Self::new(255, 255, 255, 255)
     }
+
+    pub fn as_bytes(self) -> i32 {
+        unsafe { std::mem::transmute::<Rgbw, i32>(self) }
+    }
 }
