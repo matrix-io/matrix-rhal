@@ -3,7 +3,7 @@ pub mod memory_map;
 use crate::{Device, Error};
 
 // A type that has the ability to read/write to the MATRIX Bus on the FPGA.
-pub trait MatrixBus: std::fmt::Debug {
+pub trait MatrixBus: std::fmt::Debug + Sync {
     /// Send a write buffer to the MATRIX Bus. The buffer requires an `address` to request,
     /// the `byte_length` of the data being given, and then the rest of the data itself.
     ///

@@ -2,22 +2,26 @@
 // This file is just meant to test things out.
 // use hal::gpio::config::*;
 use matrix_rhal as hal;
+use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 use std::{thread, time};
 
 fn main() {
-    let now = Instant::now();
     let bus = hal::bus::init().unwrap();
-    println!("Bus Created: {:#?}", now.elapsed());
+    let everloop = Arc::new(hal::Everloop::new(&bus));
 
-    let sensors = hal::Sensors::new(&bus);
+    let handle = thread::spawn(move || {
+        for i in 1..6 {
+            let everloop_t = Arc::clone(&everloop);
 
-    for _ in 0..1000 {
-        // println!("{:?}", gpio.get_states());
-        test_sensors(&sensors);
-        // delay(100);
-    }
-    println!("Sensor Reads: {:#?}", now.elapsed());
+            println!("{:?}", everloop_t.set_all(hal::Rgbw::new(1, 0, 1, 0)));
+            delay(i)
+        }
+    });
+
+    handle.join().unwrap();
+
+    println!("{:?}", bus);
 }
 
 // fn test_gpio_set_value(gpio: &hal::Gpio) {
@@ -43,10 +47,10 @@ fn main() {
 // }
 
 fn test_sensors(sensors: &hal::Sensors) {
-    // println!("--> {:#?}", sensors.read_uv());
-    // println!("--> {:#?}", sensors.read_pressure());
-    // println!("--> {:#?}", sensors.read_humidity());
-    // println!("--> {:#?}", sensors.read_imu());
+    println!("--> {:#?}", sensors.read_uv());
+    println!("--> {:#?}", sensors.read_pressure());
+    println!("--> {:#?}", sensors.read_humidity());
+    println!("--> {:#?}", sensors.read_imu());
 
     sensors.read_uv();
     sensors.read_pressure();
