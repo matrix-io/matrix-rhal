@@ -1,50 +1,32 @@
-/// Error handling.
-use std::{error::Error as StdError, fmt};
+//! Error handling.
 
-#[derive(Debug)]
+use failure::Fail;
+use crate::with_std;
+
+#[derive(Debug, Fail)]
 pub enum Error {
-    /// Some unspecified error.
-    Any(Box<dyn StdError + Send + Sync + 'static>),
     /// MATRIX Device could not be identified.
+    #[fail(display = "Unable to identify MATRIX device.")]
     UnknownDevice,
     /// Could not initialize the MATRIX Bus.
+    #[fail(display = "Could not start the MATRIX bus.")]
     UnableToStartBus,
     /// MATRIX Kernel modules have not been installed.
+    #[fail(display = "A mutex lock was dropped during a panic.")]
     KernelModulesNotInstalled,
-    /// General Mutex error
-    PoisonedMutex,
     /// The GPIO pin selected does not exist
+    #[fail(display = "The GPIO pin selected does not exist. Valid pins are from 0-15")]
     InvalidGpioPin,
 }
 
-impl<'a> fmt::Display for Error {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        match self {
-            Error::UnknownDevice => write!(f, "Unable to identify MATRIX device."),
-            Error::UnableToStartBus => write!(f, "Could not start the MATRIX bus."),
-            Error::PoisonedMutex => write!(f, "A mutex lock was dropped during a panic."),
-            Error::InvalidGpioPin => write!(f, "The GPIO pin selected does not exist. Valid pins are from 0-15"),
-            Error::KernelModulesNotInstalled => {
-                write!(f, "The MATRIX Kernel Modules have not been installed. In order to work, this library requires them!")
-            }
-            _ => write!(f, "TODO: ADD ERROR DESCRIPTION!"),
+with_std! {
+    use nix;
+    impl From<nix::Error> for Error {
+        fn from(error: nix::Error) -> Self {
+            // TODO: add match statement for different nix errors
+            // match error {}
+    
+            Error::UnableToStartBus
         }
-    }
-}
-
-use nix;
-impl From<nix::Error> for Error {
-    fn from(error: nix::Error) -> Self {
-        // TODO: add match statement for different nix errors
-        // match error {}
-
-        Error::UnableToStartBus
-    }
-}
-
-use std::sync::{MutexGuard, PoisonError};
-impl<T> From<PoisonError<MutexGuard<'_, T>>> for Error {
-    fn from(_: PoisonError<MutexGuard<T>>) -> Self {
-        Error::PoisonedMutex
     }
 }

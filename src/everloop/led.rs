@@ -24,6 +24,6 @@ impl Rgbw {
     }
 
     pub fn as_bytes(self) -> i32 {
-        unsafe { std::mem::transmute::<Rgbw, i32>(self) }
+        i32::from_be_bytes([self.r, self.g, self.b, self.w])
     }
 }

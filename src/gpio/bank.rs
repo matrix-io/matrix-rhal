@@ -1,5 +1,7 @@
 use crate::bus::memory_map::*;
 use crate::Bus;
+use core::intrinsics::transmute;
+use heapless::{Vec, consts};
 
 /// Bank contains functions to configure a PWM.
 /// A bank is a set of 4 pins, starting from pin 0 and going in order.
@@ -30,15 +32,17 @@ impl<'a> Bank<'a> {
     }
 
     /// Create 4 banks configured for use in a MATRIX device.
-    pub fn new_set(bus: &Bus) -> Vec<Bank> {
+    pub fn new_set(bus: &Bus) -> Vec<Bank, consts::U4> {
         // create a bank for each set of 4 pins
-        let mut banks = vec![Bank::new(&bus).clone(); 4];
+        let mut banks = Vec::new();
 
         // configure each bank with the proper address offsets
         let mut gpio_base_address = fpga_address::GPIO + 4;
-        for mut bank in &mut banks {
+        for _ in 0..4 {
+            let mut bank = Bank::new(&bus);
             bank.memory_offset = gpio_base_address;
             gpio_base_address += 6;
+            banks.push(bank);
         }
 
         banks
@@ -63,6 +67,6 @@ impl<'a> Bank<'a> {
         buffer[2] = timer_setup as u32;
 
         self.bus
-            .write(unsafe { std::mem::transmute::<&mut [u32], &mut [u8]>(&mut buffer) });
+            .write(unsafe { transmute::<&mut [u32], &mut [u8]>(&mut buffer) });
     }
 }

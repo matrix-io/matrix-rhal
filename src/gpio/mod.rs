@@ -5,20 +5,21 @@ pub mod config;
 use crate::bus::memory_map::*;
 pub use bank::*;
 pub use config::*;
-use std::sync::Mutex;
+use core::sync::atomic::{AtomicU16, Ordering};
+use core::intrinsics::transmute;
 
 /// Controls the GPIO pins on a MATRIX device.
 #[derive(Debug)]
 pub struct Gpio<'a> {
     bus: &'a Bus,
     /// Current setting of each pin's mode (binary representation).
-    mode_pin_map: Mutex<u16>,
+    mode_pin_map: AtomicU16,
     /// Current setting of each pin's state (binary representation).
-    state_pin_map: Mutex<u16>,
+    state_pin_map: AtomicU16,
     /// Current setting of each pin's function (binary representation).
-    function_pin_map: Mutex<u16>,
+    function_pin_map: AtomicU16,
     /// Current setting of each bank's prescaler (binary representation).
-    prescaler_bank_map: Mutex<u16>,
+    prescaler_bank_map: AtomicU16,
     /// Current state of each GPIO Bank.
     banks: Mutex<Vec<Bank<'a>>>,
 }
@@ -28,10 +29,10 @@ impl<'a> Gpio<'a> {
     pub fn new(bus: &'a Bus) -> Gpio {
         Gpio {
             bus,
-            mode_pin_map: Mutex::new(0x0),
-            state_pin_map: Mutex::new(0x0),
-            function_pin_map: Mutex::new(0x0),
-            prescaler_bank_map: Mutex::new(0x0),
+            mode_pin_map: AtomicU16::new(0x0),
+            state_pin_map: AtomicU16::new(0x0),
+            function_pin_map: AtomicU16::new(0x0),
+            prescaler_bank_map: AtomicU16::new(0x0),
             banks: Mutex::new(Bank::new_set(&bus)),
         }
     }
@@ -111,7 +112,7 @@ impl<'a> Gpio<'a> {
         // populate buffer
         // the buffer will be passed a value that contains the state of each GPIO pin
         self.bus
-            .read(unsafe { std::mem::transmute::<&mut [u32], &mut [u8]>(buffer) });
+            .read(unsafe { transmute::<&mut [u32], &mut [u8]>(buffer) });
     }
 }
 
@@ -156,17 +157,22 @@ impl<'a> Gpio<'a> {
         buffer[2] = value as u32;
 
         self.bus
-            .write(unsafe { std::mem::transmute::<&mut [u32], &mut [u8]>(&mut buffer) });
+            .write(unsafe { transmute::<&mut [u32], &mut [u8]>(&mut buffer) });
     }
 
     /// Set the prescaler value for a specific bank
     pub fn set_prescaler(&self, bank: usize, prescaler: u16) -> Result<(), Error> {
         let mask = 0xF << (4 * bank);
-        let mut bank_prescaler = self.prescaler_bank_map.lock()?;
+        let new_prescaler = loop {
+            let bank_prescaler = self.prescaler_bank_map.load(Ordering::Acquire);
 
-        *bank_prescaler = prescaler << (4 * bank) | (*bank_prescaler & !mask);
+            let new_prescaler = prescaler << (4 * bank) | (bank_prescaler & !mask);
+            if self.prescaler_bank_map.compare_and_swap(bank_prescaler, new_prescaler, Ordering::Release) == bank_prescaler {
+                break new_prescaler;
+            }
+        };
 
-        self.bus_write(*bank_prescaler, 3);
+        self.bus_write(new_prescaler, 3);
         Ok(())
     }
 
@@ -176,7 +182,7 @@ impl<'a> Gpio<'a> {
 
         const GPIO_PRESCALER: u16 = 0x5;
         let period_seconds = 1.0 / frequency;
-        let fpga_clock = self.bus.fpga_frequency;
+        let fpga_clock = self.bus.fpga_frequency();
 
         let period_counter: u32 =
             ((period_seconds * fpga_clock as f32) / ((1 << GPIO_PRESCALER) * 2) as f32) as u32;
@@ -225,7 +231,7 @@ impl<'a> Gpio<'a> {
         When all math is combined you get
         final_period_counter = (period_seconds * FPGAClock / ((1 << GPIOPrescaler) * 2);
         */
-        let period_counter: u32 = ((PERIOD_SECONDS * self.bus.fpga_frequency as f32)
+        let period_counter: u32 = ((PERIOD_SECONDS * self.bus.fpga_frequency() as f32)
             / (((1 << GPIO_PRESCALER) * 2) as f32)) as u32;
 
         // Servo pulse width is symmetrical, with 1.5ms as neutral position
