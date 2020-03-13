@@ -5,8 +5,8 @@ pub mod config;
 use crate::bus::memory_map::*;
 pub use bank::*;
 pub use config::*;
-use core::sync::atomic::{AtomicU16, Ordering};
 use core::intrinsics::transmute;
+use core::sync::atomic::{AtomicU16, Ordering};
 
 /// Controls the GPIO pins on a MATRIX device.
 #[derive(Debug)]
@@ -21,7 +21,7 @@ pub struct Gpio<'a> {
     /// Current setting of each bank's prescaler (binary representation).
     prescaler_bank_map: AtomicU16,
     /// Current state of each GPIO Bank.
-    banks: Mutex<Vec<Bank<'a>>>,
+    banks: [Bank<'a>; 4],
 }
 
 impl<'a> Gpio<'a> {
@@ -33,7 +33,7 @@ impl<'a> Gpio<'a> {
             state_pin_map: AtomicU16::new(0x0),
             function_pin_map: AtomicU16::new(0x0),
             prescaler_bank_map: AtomicU16::new(0x0),
-            banks: Mutex::new(Bank::new_set(&bus)),
+            banks: Bank::new_set(&bus),
         }
     }
 
@@ -167,7 +167,12 @@ impl<'a> Gpio<'a> {
             let bank_prescaler = self.prescaler_bank_map.load(Ordering::Acquire);
 
             let new_prescaler = prescaler << (4 * bank) | (bank_prescaler & !mask);
-            if self.prescaler_bank_map.compare_and_swap(bank_prescaler, new_prescaler, Ordering::Release) == bank_prescaler {
+            if self.prescaler_bank_map.compare_and_swap(
+                bank_prescaler,
+                new_prescaler,
+                Ordering::Release,
+            ) == bank_prescaler
+            {
                 break new_prescaler;
             }
         };
