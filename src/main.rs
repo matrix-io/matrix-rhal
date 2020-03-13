@@ -6,14 +6,14 @@ use std::{thread, time};
 
 fn main() {
     let bus = hal::bus::init();
-    let everloop = hal::Everloop::new(&*bus);
-    let sensors = hal::Sensors::new(&*bus);
-    let gpio = hal::Gpio::new(&*bus);
+    // let everloop = hal::Everloop::new(&*bus);
+    // let sensors = hal::Sensors::new(&*bus);
+    // let gpio = hal::Gpio::new(&*bus);
 
-    everloop.set_all(hal::Rgbw::new(1, 0, 1, 0));
-    sensors.read_imu();
-    gpio.get_state(0);
-    delay(0);
+    // everloop.set_all(hal::Rgbw::new(1, 0, 1, 0));
+    // sensors.read_imu();
+    // gpio.get_state(0);
+    // delay(0);
 
     println!("\nfinished");
 }

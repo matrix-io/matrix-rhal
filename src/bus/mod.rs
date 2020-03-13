@@ -74,6 +74,6 @@ pub fn init() -> Box<dyn MatrixBus> {
     }
     // or through Raspberry Pi SPI
     else {
-        return Box::new(direct::Bus::init().expect("Could not communicate with the MATRIX Bus through Kernel Modules or the Raspberry PI's SPI"));
+        return Box::new(direct::Bus::init().expect("Could not communicate with the MATRIX Bus through the Kernel Modules or the Raspberry PI's SPI"));
     }
 }

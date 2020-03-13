@@ -1,14 +1,10 @@
 use super::{memory_map::*, MatrixBus};
+pub mod ioctl;
 use crate::{error::Error, info, Device};
-use nix::{request_code_read, request_code_write}; // IOR and IOW,
-
+use ioctl::*;
 use nix::fcntl::{open, OFlag}; // https://linux.die.net/man/3/open
 use nix::sys::stat::Mode;
 use nix::unistd::close;
-use nix::{ioctl_read_bad, ioctl_write_ptr_bad};
-
-/// SPI Magic number for IOCTL
-const SPI_IOC_MAGIC: u8 = b'k'; // Defined in linux/spi/spidev.h
 
 /// Bridge for talking to the FPGA on a MATRIX device.
 /// Most, if not all, MATRIX functionality requires this Bus to read and write data.
@@ -52,33 +48,23 @@ impl Bus {
         // open the file descriptor to communicate with the MATRIX kernel
         bus.regmap_fd = open(bus.device_file, OFlag::O_RDWR, Mode::empty())?;
 
-        let spi_ioc_rd_mode = request_code_read!(SPI_IOC_MAGIC, 1, 1);
-        assert_eq!(spi_ioc_rd_mode, 2147576577);
+        // configure SPI settings
+        unsafe {
+            spi_ioc_write_mode(bus.regmap_fd, &mut bus.spi_mode).unwrap();
+            spi_ioc_read_mode(bus.regmap_fd, &mut bus.spi_mode).unwrap();
 
-        let spi_ioc_rd_bits_per_word = request_code_read!(SPI_IOC_MAGIC, 3, 1);
-        assert_eq!(spi_ioc_rd_bits_per_word, 2147576579);
+            spi_ioc_write_bits_per_word(bus.regmap_fd, &mut bus.spi_bits).unwrap();
+            spi_ioc_read_bits_per_word(bus.regmap_fd, &mut bus.spi_bits).unwrap();
 
-        let spi_ioc_rd_max_speed_hz = request_code_read!(SPI_IOC_MAGIC, 4, 4);
-        assert_eq!(spi_ioc_rd_max_speed_hz, 2147773188);
-
-        // * Write Numbers
-        let spi_ioc_wr_mode = request_code_write!(SPI_IOC_MAGIC, 1, 1);
-        assert_eq!(spi_ioc_wr_mode, 1073834753);
-
-        let spi_ioc_wr_bits_per_word = request_code_write!(SPI_IOC_MAGIC, 3, 1);
-        assert_eq!(spi_ioc_wr_bits_per_word, 1073834755);
-
-        let spi_ioc_wr_max_speed_hz = request_code_write!(SPI_IOC_MAGIC, 4, 4);
-        assert_eq!(spi_ioc_wr_max_speed_hz, 1074031364);
-
-        // if (ioctl(spi_fd_, SPI_IOC_WR_MODE, &spi_mode_) == -1) {
-        //     std::cerr << "can't set spi mode" << std::endl;
-        //     return false;
-        // }
+            spi_ioc_write_max_speed_hz(bus.regmap_fd, &mut bus.spi_speed).unwrap();
+            spi_ioc_read_max_speed_hz(bus.regmap_fd, &mut bus.spi_speed).unwrap();
+        }
 
         println!("This passed all according to plan!");
-        Err(Error::InvalidGpioPin)
+        Ok(bus)
     }
+
+    fn spi_transfer(&self, send_buffer: &mut [u8], receive_buffer: &mut [u8], bytes: u32) {}
 }
 
 impl MatrixBus for Bus {
