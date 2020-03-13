@@ -2,6 +2,7 @@ use crate::bus::memory_map::*;
 use crate::{Bus, Device};
 mod data;
 use data::*;
+use core::intrinsics::transmute;
 
 /// Communicates with the main sensors on the MATRIX Creator.
 #[derive(Debug)]
@@ -13,7 +14,7 @@ pub struct Sensors<'a> {
 impl<'a> Sensors<'a> {
     /// Creates a new instance of Sensors.
     pub fn new(bus: &Bus) -> Sensors {
-        if bus.device_name != Device::Creator {
+        if bus.device_name() != Device::Creator {
             panic!("Sensors are only available on the MATRIX Creator!")
         }
 
@@ -31,7 +32,7 @@ impl<'a> Sensors<'a> {
 
         // populate buffer
         self.bus
-            .read(unsafe { std::mem::transmute::<&mut [i32], &mut [u8]>(&mut data) });
+            .read(unsafe { transmute::<&mut [i32], &mut [u8]>(&mut data) });
 
         data[2] as f32 / 1000.0
     }
@@ -47,7 +48,7 @@ impl<'a> Sensors<'a> {
 
         // populate buffer
         self.bus
-            .read(unsafe { std::mem::transmute::<&mut [i32], &mut [u8]>(&mut data) });
+            .read(unsafe { transmute::<&mut [i32], &mut [u8]>(&mut data) });
 
         Pressure {
             pressure: data[3] as f32 / 1000.0,
@@ -67,7 +68,7 @@ impl<'a> Sensors<'a> {
 
         // populate buffer
         self.bus
-            .read(unsafe { std::mem::transmute::<&mut [i32], &mut [u8]>(&mut data) });
+            .read(unsafe { transmute::<&mut [i32], &mut [u8]>(&mut data) });
 
         Humidity {
             humidity: data[2] as f32 / 1000.0,
@@ -86,7 +87,7 @@ impl<'a> Sensors<'a> {
 
         // populate read buffer
         self.bus
-            .read(unsafe { std::mem::transmute::<&mut [i32], &mut [u8]>(&mut data) });
+            .read(unsafe { transmute::<&mut [i32], &mut [u8]>(&mut data) });
 
         Imu {
             accel_x: data[2] as f32 / 1000.0,

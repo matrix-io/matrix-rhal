@@ -2,6 +2,8 @@ mod led;
 use crate::bus::memory_map::*;
 use crate::Bus;
 pub use led::Rgbw;
+use core::intrinsics::transmute;
+use heapless::{Vec, consts::U64 as MAX_LEDS};
 
 /// Controls the ring of LEDS on a MATRIX device.
 #[derive(Debug)]
@@ -25,17 +27,19 @@ impl<'a> Everloop<'a> {
     /// everloop.set(&vec![matrix_rhal::Rgbw::new(0,0,255,0); 15]);
     /// ```
     pub fn set(&self, leds: &[Rgbw]) {
-        if leds.len() > self.bus.device_leds as usize {
+        let device_leds = self.bus.device_leds();
+        if leds.len() > device_leds as usize {
             panic!(
                 "Invalid LED set. This device only has {} LEDs",
-                self.bus.device_leds
+                device_leds
             );
         }
 
         // create write buffer
-        let mut request = Vec::with_capacity(self.bus.device_leds as usize + 2);
+        let capacity = device_leds as usize + 2;
+        let mut request: Vec<i32, MAX_LEDS> = Vec::new();
         request.push(fpga_address::EVERLOOP as i32);
-        request.push((self.bus.device_leds * 4) as i32); // each LED RGBW requires 4 bytes
+        request.push((device_leds * 4) as i32); // each LED RGBW requires 4 bytes
 
         // store all LED colors given
         for led in leds {
@@ -43,19 +47,19 @@ impl<'a> Everloop<'a> {
         }
 
         // set remaining LEDs to black
-        for _ in 0..(request.capacity() - request.len()) {
-            request.push(Rgbw::black().as_bytes())
+        for _ in 0..(capacity - request.len()) {
+            request.push(Rgbw::black().as_bytes());
         }
 
         // render LEDs
         self.bus
-            .write(unsafe { std::mem::transmute::<&mut Vec<i32>, &mut Vec<u8>>(&mut request) });
+            .write(unsafe { transmute::<&mut Vec<i32, MAX_LEDS>, &mut Vec<u8, MAX_LEDS>>(&mut request) });
     }
 
     /// Set all MATRIX LEDs to a single color
     pub fn set_all(&self, color: Rgbw) {
-        let mut leds = Vec::new();
-        leds.extend(std::iter::repeat(color).take(self.bus.device_leds as usize));
+        let mut leds: Vec<Rgbw, MAX_LEDS> = Vec::new();
+        leds.extend(core::iter::repeat(color).take(self.bus.device_leds() as usize));
 
         self.set(&leds)
     }
