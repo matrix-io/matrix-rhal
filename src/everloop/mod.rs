@@ -4,13 +4,13 @@ pub use led::Rgbw;
 
 /// Controls the ring of LEDS on a MATRIX device.
 #[derive(Debug)]
-pub struct Everloop {
-    bus: &'static dyn MatrixBus,
+pub struct Everloop<'a> {
+    bus: &'a dyn MatrixBus,
 }
 
-impl Everloop {
+impl<'a> Everloop<'a> {
     /// Return an instance of Everloop.
-    pub fn new(bus: &'static dyn MatrixBus) -> Everloop {
+    pub fn new(bus: &'a dyn MatrixBus) -> Everloop {
         Everloop { bus }
     }
 

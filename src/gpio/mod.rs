@@ -8,8 +8,8 @@ use std::sync::Mutex;
 
 /// Controls the GPIO pins on a MATRIX device.
 #[derive(Debug)]
-pub struct Gpio {
-    bus: &'static dyn MatrixBus,
+pub struct Gpio<'a> {
+    bus: &'a dyn MatrixBus,
     /// Current setting of each pin's mode (binary representation).
     mode_pin_map: Mutex<u16>,
     /// Current setting of each pin's state (binary representation).
@@ -19,12 +19,12 @@ pub struct Gpio {
     /// Current setting of each bank's prescaler (binary representation).
     prescaler_bank_map: Mutex<u16>,
     /// Current state of each GPIO Bank.
-    banks: Mutex<Vec<Bank>>,
+    banks: Mutex<Vec<Bank<'a>>>,
 }
 
-impl Gpio {
+impl<'a> Gpio<'a> {
     /// Returns an instance of GPIO.
-    pub fn new(bus: &'static dyn MatrixBus) -> Gpio {
+    pub fn new(bus: &'a dyn MatrixBus) -> Gpio {
         Gpio {
             bus,
             mode_pin_map: Mutex::new(0x0),
@@ -48,7 +48,7 @@ impl Gpio {
 ///////////////////////////////
 // Get Functions
 //////////////////////////////
-impl Gpio {
+impl<'a> Gpio<'a> {
     /// Returns the current digital value of a MATRIX GPIO pin (0->15).
     pub fn get_state(&self, pin: u8) -> bool {
         // TODO: add error check
@@ -117,7 +117,7 @@ impl Gpio {
 ///////////////////////////////
 // Set Functions
 //////////////////////////////
-impl Gpio {
+impl<'a> Gpio<'a> {
     /// Configure a specific pin's mode, function, state, etc..
     pub fn set_config<T>(&self, pin: u8, config: impl PinConfig) -> Result<(), Error> {
         Gpio::is_pin_valid(pin)?;

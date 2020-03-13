@@ -23,6 +23,7 @@ impl Rgbw {
         Self::new(255, 255, 255, 255)
     }
 
+    /// Return an integer representing the 4 bytes that make up `Rgbw`
     pub fn as_bytes(self) -> i32 {
         unsafe { std::mem::transmute::<Rgbw, i32>(self) }
     }

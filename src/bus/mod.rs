@@ -1,9 +1,10 @@
 pub mod kernel;
 pub mod memory_map;
 use crate::{Device, Error};
+use std::boxed::Box;
 
 // A type that has the ability to read/write to the MATRIX Bus on the FPGA.
-pub trait MatrixBus: std::fmt::Debug + Sync {
+pub trait MatrixBus: std::fmt::Debug {
     /// Send a write buffer to the MATRIX Bus. The buffer requires an `address` to request,
     /// the `byte_length` of the data being given, and then the rest of the data itself.
     ///
@@ -65,10 +66,6 @@ pub trait MatrixBus: std::fmt::Debug + Sync {
 }
 
 /// Return a Bus that communicates through the MATRIX Bus or an SPI interface.
-pub fn init() -> Result<impl MatrixBus, Error> {
-    Ok(kernel::Bus::init()?)
-}
-
-pub struct Bus {
-    wish_bone: MatrixBus,
+pub fn init() -> Result<Box<dyn MatrixBus>, Error> {
+    Ok(Box::new(kernel::Bus::init()?))
 }
