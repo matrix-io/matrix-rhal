@@ -12,7 +12,7 @@ pub struct Sensors<'a> {
 // Read function for each sensor.
 impl<'a> Sensors<'a> {
     /// Creates a new instance of Sensors.
-    pub fn new(bus: &'a dyn MatrixBus) -> Sensors {
+    pub fn new(bus: &dyn MatrixBus) -> Sensors {
         if bus.get_device_name() != Device::Creator {
             panic!("Sensors are only available on the MATRIX Creator!")
         }

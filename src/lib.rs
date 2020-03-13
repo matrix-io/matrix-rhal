@@ -2,6 +2,7 @@ pub mod bus;
 mod error;
 mod everloop;
 pub mod gpio;
+pub mod info;
 mod sensors;
 
 pub use error::Error;

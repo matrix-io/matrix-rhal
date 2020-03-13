@@ -24,7 +24,7 @@ pub struct Gpio<'a> {
 
 impl<'a> Gpio<'a> {
     /// Returns an instance of GPIO.
-    pub fn new(bus: &'a dyn MatrixBus) -> Gpio {
+    pub fn new(bus: &dyn MatrixBus) -> Gpio {
         Gpio {
             bus,
             mode_pin_map: Mutex::new(0x0),

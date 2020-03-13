@@ -1,3 +1,6 @@
+/// SPI Magic number for IOCTL
+const SPI_IOC_MAGIC: char = b'k'; // Defined in linux/spi/spidev.h
+
 /// Bridge for talking to the FPGA on a MATRIX device.
 /// Most, if not all, MATRIX functionality requires this Bus to read and write data.
 struct Bus {
@@ -13,4 +16,10 @@ struct Bus {
     pub device_leds: u8,
     /// Frequency of the FPGA on the MATRIX device.
     pub fpga_frequency: u32,
+
+    spi_fd: i32,
+    spi_mode: u32,
+    spi_bits: u32,
+    spi_speed: u32,
+    spi_delay: u32,
 }

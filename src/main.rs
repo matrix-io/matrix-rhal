@@ -2,26 +2,20 @@
 // This file is just meant to test things out.
 // use hal::gpio::config::*;
 use matrix_rhal as hal;
-use std::sync::{Arc, Mutex};
-use std::time::{Duration, Instant};
 use std::{thread, time};
 
 fn main() {
     let bus = hal::bus::init().unwrap();
-    let everloop = Arc::new(hal::Everloop::new(&bus));
+    let everloop = hal::Everloop::new(&*bus);
+    let sensors = hal::Sensors::new(&*bus);
+    let gpio = hal::Gpio::new(&*bus);
 
-    let handle = thread::spawn(move || {
-        for i in 1..6 {
-            let everloop_t = Arc::clone(&everloop);
+    everloop.set_all(hal::Rgbw::new(1, 0, 1, 0));
+    sensors.read_imu();
+    gpio.get_state(0);
+    delay(0);
 
-            println!("{:?}", everloop_t.set_all(hal::Rgbw::new(1, 0, 1, 0)));
-            delay(i)
-        }
-    });
-
-    handle.join().unwrap();
-
-    println!("{:?}", bus);
+    println!("\nfinished");
 }
 
 // fn test_gpio_set_value(gpio: &hal::Gpio) {

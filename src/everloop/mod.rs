@@ -10,7 +10,7 @@ pub struct Everloop<'a> {
 
 impl<'a> Everloop<'a> {
     /// Return an instance of Everloop.
-    pub fn new(bus: &'a dyn MatrixBus) -> Everloop {
+    pub fn new(bus: &dyn MatrixBus) -> Everloop {
         Everloop { bus }
     }
 

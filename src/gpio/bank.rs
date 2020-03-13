@@ -20,7 +20,7 @@ pub struct Bank<'a> {
 
 impl<'a> Bank<'a> {
     /// Create a new instance of GPIO Bank.
-    pub fn new(bus: &'a dyn MatrixBus) -> Bank {
+    pub fn new(bus: &dyn MatrixBus) -> Bank {
         Bank {
             bus,
             memory_offset: 0x0,
@@ -29,7 +29,7 @@ impl<'a> Bank<'a> {
     }
 
     /// Create 4 banks configured for use in a MATRIX device.
-    pub fn new_set(bus: &'a dyn MatrixBus) -> Vec<Bank> {
+    pub fn new_set(bus: &dyn MatrixBus) -> Vec<Bank> {
         // create a bank for each set of 4 pins
         // TODO: follow issue with derive clone on structs with a generic type: https://github.com/rust-lang/rust/issues/26925
         let mut banks: Vec<Bank> = vec![Bank::new(bus); 4];
