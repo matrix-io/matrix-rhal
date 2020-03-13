@@ -1,5 +1,5 @@
-use crate::bus::MatrixBus;
-use crate::{bus::memory_map::*, Device, Error};
+use crate::bus::{memory_map::*, MatrixBus};
+use crate::{Device, Error};
 
 /// Return the type of MATRIX device being used and the version of the board.
 pub fn get_device_info(bus: &dyn MatrixBus) -> Result<(Device, u32), Error> {
