@@ -1,3 +1,4 @@
+pub mod direct;
 pub mod kernel;
 pub mod memory_map;
 use crate::{Device, Error};
@@ -65,7 +66,14 @@ pub trait MatrixBus: std::fmt::Debug {
     fn get_fpga_frequency(&self) -> u32;
 }
 
-/// Return a Bus that communicates through the MATRIX Bus or an SPI interface.
-pub fn init() -> Result<Box<dyn MatrixBus>, Error> {
-    Ok(Box::new(kernel::Bus::init()?))
+/// Return a Bus type that communicates with the MATRIX Bus on the FPGA.
+pub fn init() -> Box<dyn MatrixBus> {
+    // use bus through MATRIX Kernel Modules
+    if let Ok(bus) = kernel::Bus::init() {
+        return Box::new(bus);
+    }
+    // or through Raspberry Pi SPI
+    else {
+        return Box::new(direct::Bus::init().expect("Could not communicate with the MATRIX Bus through Kernel Modules or the Raspberry PI's SPI"));
+    }
 }

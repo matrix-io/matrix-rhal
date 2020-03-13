@@ -5,7 +5,7 @@ use matrix_rhal as hal;
 use std::{thread, time};
 
 fn main() {
-    let bus = hal::bus::init().unwrap();
+    let bus = hal::bus::init();
     let everloop = hal::Everloop::new(&*bus);
     let sensors = hal::Sensors::new(&*bus);
     let gpio = hal::Gpio::new(&*bus);

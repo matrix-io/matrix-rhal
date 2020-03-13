@@ -1,7 +1,5 @@
-use super::memory_map;
-use super::MatrixBus;
+use super::{memory_map::*, MatrixBus};
 use crate::{error::Error, info, Device};
-use memory_map::*;
 use nix::fcntl::{open, OFlag}; // https://linux.die.net/man/3/open
 use nix::sys::stat::Mode;
 use nix::unistd::close;
