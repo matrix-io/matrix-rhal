@@ -8,7 +8,7 @@ ioctl_read_bad!(ioctl_read, ioctl_code::READ, [u8]);
 // Generate ioctl_write() function
 ioctl_write_ptr_bad!(ioctl_write, ioctl_code::WRITE, [u8]);
 
-/// SPI Magic number for IOCTL
+/// SPI request code for IOCTL
 const SPI_IOC_MAGIC: u8 = b'k'; // Defined in linux/spi/spidev.h
 
 /*
