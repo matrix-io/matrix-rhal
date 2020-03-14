@@ -23,6 +23,7 @@ impl Rgbw {
         Self::new(255, 255, 255, 255)
     }
 
+    ///
     pub fn as_bytes(self) -> i32 {
         i32::from_be_bytes([self.r, self.g, self.b, self.w])
     }

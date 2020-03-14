@@ -1,19 +1,18 @@
 use crate::bus::memory_map::*;
 use crate::Bus;
 use core::intrinsics::transmute;
-use heapless::{consts, Vec};
 
 /// Bank contains functions to configure a PWM.
 /// A bank is a set of 4 pins, starting from pin 0 and going in order.
 ///
 /// Bank 0: pins (0->3)
 ///
-/// Bank 1: pins (4->8)
+/// Bank 1: pins (4->7)
 ///
-/// Bank 2: pins (9->12)
+/// Bank 2: pins (8->11)
 ///
-/// Bank 3: pins (13->16)
-#[derive(Debug, Clone)]
+/// Bank 3: pins (12->15)
+#[derive(Debug, Clone, Copy)]
 pub struct Bank<'a> {
     bus: &'a Bus,
     /// FPGA memory offset
@@ -36,13 +35,13 @@ impl<'a> Bank<'a> {
         let mut gpio_base_address = fpga_address::GPIO + 4;
 
         // create a bank for each set of 4 pins
-        let mut banks = [{
-            // configure each bank with the proper address offsets
-            let mut bank = Bank::new(&bus);
+        let mut banks = [Bank::new(&bus); 4];
+
+        // configure each bank with the proper address offsets
+        banks.iter_mut().map(|bank| {
             bank.memory_offset = gpio_base_address;
             gpio_base_address += 6;
-            bank
-        }; 4];
+        });
 
         banks
     }
