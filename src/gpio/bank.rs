@@ -38,10 +38,10 @@ impl<'a> Bank<'a> {
         let mut banks = [Bank::new(&bus); 4];
 
         // configure each bank with the proper address offsets
-        banks.iter_mut().map(|bank| {
-            bank.memory_offset = gpio_base_address;
+        for i in 0..4 {
+            banks[i].memory_offset = gpio_base_address;
             gpio_base_address += 6;
-        });
+        }
 
         banks
     }
