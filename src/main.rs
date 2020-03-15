@@ -6,15 +6,12 @@ use std::{thread, time};
 
 fn main() {
     let bus = hal::Bus::init().unwrap();
-    println!("{:?}", bus);
-
     let sensors = hal::Sensors::new(&bus);
-    println!("{}", sensors.read_uv());
     let everloop = hal::Everloop::new(&bus);
     let gpio = hal::Gpio::new(&bus);
 
     // everloop.set_all(hal::Rgbw::black());
-    everloop.set_all(hal::Rgbw::new(255, 0, 255, 0));
+    everloop.set_all(hal::Rgbw::new(1, 0, 1, 0));
 
     // test_gpio_set_value(&gpio);
     // test_gpio_pwm(&gpio);
@@ -31,7 +28,7 @@ fn test_gpio_set_value(gpio: &hal::Gpio) {
 fn test_gpio_pwm(gpio: &hal::Gpio) {
     gpio.set_config(2, Function::Pwm).unwrap();
     gpio.set_config(2, Mode::Output).unwrap();
-    gpio.set_pwm(2, 50.0, 50.0).unwrap();
+    gpio.set_pwm(2, 300.0, 50.0).unwrap();
 }
 
 fn test_gpio_set_servo(gpio: &hal::Gpio) {
