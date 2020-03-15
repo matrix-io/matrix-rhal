@@ -1,7 +1,7 @@
 //! Error handling.
 
-use failure::Fail;
 use crate::with_std;
+use failure::Fail;
 
 #[derive(Debug, Fail)]
 pub enum Error {
@@ -12,7 +12,7 @@ pub enum Error {
     #[fail(display = "Could not start the MATRIX bus.")]
     UnableToStartBus,
     /// MATRIX Kernel modules have not been installed.
-    #[fail(display = "A mutex lock was dropped during a panic.")]
+    #[fail(display = "The MATRIX Kernel Modules are not installed.")]
     KernelModulesNotInstalled,
     /// The GPIO pin selected does not exist
     #[fail(display = "The GPIO pin selected does not exist. Valid pins are from 0-15")]
@@ -25,7 +25,7 @@ with_std! {
         fn from(error: nix::Error) -> Self {
             // TODO: add match statement for different nix errors
             // match error {}
-    
+
             Error::UnableToStartBus
         }
     }
