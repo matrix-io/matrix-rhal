@@ -17,10 +17,10 @@ pub enum Mode {
 
 impl PinConfig for Mode {
     fn update_pin_map(&self, pin: u8, gpio: &Gpio) -> Result<(u16, u16), Error> {
-        let pin_map = gpio.mode_pin_map.load(Ordering::AcqRel);
+        let pin_map = gpio.mode_pin_map.load(Ordering::Acquire);
         set_pin_config(pin, *self as u16, &pin_map);
 
-        gpio.mode_pin_map.store(pin_map, Ordering::AcqRel);
+        gpio.mode_pin_map.store(pin_map, Ordering::Release);
         Ok((pin_map, 0))
     }
 }
@@ -34,10 +34,10 @@ pub enum State {
 
 impl PinConfig for State {
     fn update_pin_map(&self, pin: u8, gpio: &Gpio) -> Result<(u16, u16), Error> {
-        let pin_map = gpio.state_pin_map.load(Ordering::AcqRel);
+        let pin_map = gpio.state_pin_map.load(Ordering::Acquire);
         set_pin_config(pin, *self as u16, &pin_map);
 
-        gpio.state_pin_map.store(pin_map, Ordering::AcqRel);
+        gpio.state_pin_map.store(pin_map, Ordering::Release);
         Ok((pin_map, 1))
     }
 }
@@ -51,10 +51,10 @@ pub enum Function {
 
 impl PinConfig for Function {
     fn update_pin_map(&self, pin: u8, gpio: &Gpio) -> Result<(u16, u16), Error> {
-        let pin_map = gpio.function_pin_map.load(Ordering::AcqRel);
+        let pin_map = gpio.function_pin_map.load(Ordering::Acquire);
         set_pin_config(pin, *self as u16, &pin_map);
 
-        gpio.function_pin_map.store(pin_map, Ordering::AcqRel);
+        gpio.function_pin_map.store(pin_map, Ordering::Release);
         Ok((pin_map, 2))
     }
 }
