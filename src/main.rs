@@ -6,23 +6,26 @@ use std::{thread, time};
 
 fn main() {
     let bus = hal::Bus::init().unwrap();
-    let sensors = hal::Sensors::new(&bus);
+    println!("{:?}", bus);
+
+    // let sensors = hal::Sensors::new(&bus);
     let everloop = hal::Everloop::new(&bus);
-    let gpio = hal::Gpio::new(&bus);
+    // let gpio = hal::Gpio::new(&bus);
 
     everloop.set_all(hal::Rgbw::black());
+    everloop.set_all(hal::Rgbw::new(1, 0, 1, 0));
 
     // test_gpio_set_value(&gpio);
     // test_gpio_pwm(&gpio);
-    test_gpio_set_value(&gpio);
+    // test_gpio_set_value(&gpio);
 }
 
-fn test_gpio_set_value(gpio: &hal::Gpio) {
-    gpio.set_configs(&[0, 1], Function::Digital).unwrap();
-    gpio.set_config(1, Mode::Output).unwrap();
-    gpio.set_config(0, Mode::Input).unwrap();
-    gpio.set_config(1, State::On).unwrap();
-}
+// fn test_gpio_set_value(gpio: &hal::Gpio) {
+//     gpio.set_configs(&[0, 1], Function::Digital).unwrap();
+//     gpio.set_config(1, Mode::Output).unwrap();
+//     gpio.set_config(0, Mode::Input).unwrap();
+//     gpio.set_config(1, State::On).unwrap();
+// }
 
 // fn test_gpio_pwm(gpio: &hal::Gpio) {
 //     gpio.set_config(2, Function::Pwm).unwrap();

@@ -12,7 +12,7 @@ description = "The Rust implementation of MATRIX HAL."
 license = "GPL-3.0"
 
 [features]
-default = []
+default = ["std"]
 std = ["nix"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
