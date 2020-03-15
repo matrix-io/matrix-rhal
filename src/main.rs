@@ -8,46 +8,47 @@ fn main() {
     let bus = hal::Bus::init().unwrap();
     println!("{:?}", bus);
 
-    // let sensors = hal::Sensors::new(&bus);
+    let sensors = hal::Sensors::new(&bus);
+    println!("{}", sensors.read_uv());
     let everloop = hal::Everloop::new(&bus);
-    // let gpio = hal::Gpio::new(&bus);
+    let gpio = hal::Gpio::new(&bus);
 
-    everloop.set_all(hal::Rgbw::black());
-    everloop.set_all(hal::Rgbw::new(1, 0, 1, 0));
+    // everloop.set_all(hal::Rgbw::black());
+    everloop.set_all(hal::Rgbw::new(255, 0, 255, 0));
 
     // test_gpio_set_value(&gpio);
     // test_gpio_pwm(&gpio);
     // test_gpio_set_value(&gpio);
 }
 
-// fn test_gpio_set_value(gpio: &hal::Gpio) {
-//     gpio.set_configs(&[0, 1], Function::Digital).unwrap();
-//     gpio.set_config(1, Mode::Output).unwrap();
-//     gpio.set_config(0, Mode::Input).unwrap();
-//     gpio.set_config(1, State::On).unwrap();
-// }
+fn test_gpio_set_value(gpio: &hal::Gpio) {
+    gpio.set_configs(&[0, 1], Function::Digital).unwrap();
+    gpio.set_config(1, Mode::Output).unwrap();
+    gpio.set_config(0, Mode::Input).unwrap();
+    gpio.set_config(1, State::On).unwrap();
+}
 
-// fn test_gpio_pwm(gpio: &hal::Gpio) {
-//     gpio.set_config(2, Function::Pwm).unwrap();
-//     gpio.set_config(2, Mode::Output).unwrap();
-//     gpio.set_pwm(2, 50.0, 50.0).unwrap();
-// }
+fn test_gpio_pwm(gpio: &hal::Gpio) {
+    gpio.set_config(2, Function::Pwm).unwrap();
+    gpio.set_config(2, Mode::Output).unwrap();
+    gpio.set_pwm(2, 50.0, 50.0).unwrap();
+}
 
-// fn test_gpio_set_servo(gpio: &hal::Gpio) {
-//     gpio.set_config(3, Function::Pwm).unwrap();
-//     gpio.set_config(3, Mode::Output).unwrap();
+fn test_gpio_set_servo(gpio: &hal::Gpio) {
+    gpio.set_config(3, Function::Pwm).unwrap();
+    gpio.set_config(3, Mode::Output).unwrap();
 
-//     gpio.set_servo_angle(3, 0, 0.7).unwrap();
-//     delay(2000);
-//     gpio.set_servo_angle(3, 180, 0.7).unwrap();
-// }
+    gpio.set_servo_angle(3, 0, 0.7).unwrap();
+    delay(2000);
+    gpio.set_servo_angle(3, 180, 0.7).unwrap();
+}
 
-// fn test_sensors(sensors: &hal::Sensors) {
-//     println!("--> {:#?}", sensors.read_uv());
-//     println!("--> {:#?}", sensors.read_pressure());
-//     println!("--> {:#?}", sensors.read_humidity());
-//     println!("--> {:#?}", sensors.read_imu());
-// }
+fn test_sensors(sensors: &hal::Sensors) {
+    println!("--> {:#?}", sensors.read_uv());
+    println!("--> {:#?}", sensors.read_pressure());
+    println!("--> {:#?}", sensors.read_humidity());
+    println!("--> {:#?}", sensors.read_imu());
+}
 
 fn delay(ms: u64) {
     let ten_millis = time::Duration::from_millis(ms);

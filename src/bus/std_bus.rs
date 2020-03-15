@@ -1,5 +1,5 @@
-use crate::{bus::memory_map::*, error::Error, Device};
 use super::BusImpl;
+use crate::{bus::memory_map::*, error::Error, Device};
 use nix::fcntl::{open, OFlag}; // https://linux.die.net/man/3/open
 use nix::sys::stat::Mode;
 use nix::unistd::close;
