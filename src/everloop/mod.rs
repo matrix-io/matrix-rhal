@@ -1,9 +1,9 @@
 mod led;
 use crate::bus::memory_map::*;
 use crate::Bus;
-pub use led::Rgbw;
 use core::intrinsics::transmute;
-use heapless::{Vec, consts::U64 as MAX_LEDS};
+use heapless::{consts::U64 as MAX_LEDS, Vec};
+pub use led::Rgbw;
 
 /// Controls the ring of LEDS on a MATRIX device.
 #[derive(Debug)]
@@ -29,31 +29,28 @@ impl<'a> Everloop<'a> {
     pub fn set(&self, leds: &[Rgbw]) {
         let device_leds = self.bus.device_leds();
         if leds.len() > device_leds as usize {
-            panic!(
-                "Invalid LED set. This device only has {} LEDs",
-                device_leds
-            );
+            panic!("Invalid LED set. This device only has {} LEDs", device_leds);
         }
 
         // create write buffer
         let capacity = device_leds as usize + 2;
         let mut request: Vec<i32, MAX_LEDS> = Vec::new();
-        request.push(fpga_address::EVERLOOP as i32);
-        request.push((device_leds * 4) as i32); // each LED RGBW requires 4 bytes
+        request.push(fpga_address::EVERLOOP as i32).unwrap();
+        request.push((device_leds * 4) as i32).unwrap(); // each LED RGBW requires 4 bytes
 
         // store all LED colors given
         for led in leds {
-            request.push(led.as_bytes());
+            request.push(led.as_bytes()).unwrap();
         }
 
         // set remaining LEDs to black
         for _ in 0..(capacity - request.len()) {
-            request.push(Rgbw::black().as_bytes());
+            request.push(Rgbw::black().as_bytes()).unwrap();
         }
 
         // render LEDs
         self.bus
-            .write(unsafe { transmute::<&mut Vec<i32, MAX_LEDS>, &mut Vec<u8, MAX_LEDS>>(&mut request) });
+            .write(unsafe { transmute::<&mut [i32], &mut [u8]>(&mut request) });
     }
 
     /// Set all MATRIX LEDs to a single color

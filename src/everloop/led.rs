@@ -25,6 +25,6 @@ impl Rgbw {
 
     /// Return an integer representing the 4 bytes that make up `Rgbw`
     pub fn as_bytes(self) -> i32 {
-        i32::from_be_bytes([self.r, self.g, self.b, self.w])
+        i32::from_le_bytes([self.r, self.g, self.b, self.w])
     }
 }
