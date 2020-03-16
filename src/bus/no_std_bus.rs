@@ -1,9 +1,8 @@
+use super::MatrixBus;
 use crate::{bus::memory_map::*, error::Error, Device};
-use super::BusImpl;
 
 #[derive(Debug)]
-pub struct Bus {
-}
+pub struct Bus {}
 
 impl Bus {
     pub fn init() -> Result<Bus, Error> {

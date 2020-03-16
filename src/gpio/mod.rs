@@ -163,21 +163,14 @@ impl<'a> Gpio<'a> {
     /// Set the prescaler value for a specific bank
     pub fn set_prescaler(&self, bank: usize, prescaler: u16) -> Result<(), Error> {
         let mask = 0xF << (4 * bank);
-        let new_prescaler = loop {
-            let bank_prescaler = self.prescaler_bank_map.load(Ordering::Acquire);
+        let mut bank_prescaler = self.prescaler_bank_map.load(Ordering::Acquire);
 
-            let new_prescaler = prescaler << (4 * bank) | (bank_prescaler & !mask);
-            if self.prescaler_bank_map.compare_and_swap(
-                bank_prescaler,
-                new_prescaler,
-                Ordering::Release,
-            ) == bank_prescaler
-            {
-                break new_prescaler;
-            }
-        };
+        bank_prescaler = prescaler << (4 * bank) | (bank_prescaler & !mask);
 
-        self.bus_write(new_prescaler, 3);
+        self.prescaler_bank_map
+            .store(bank_prescaler, Ordering::Release);
+
+        self.bus_write(bank_prescaler, 3);
         Ok(())
     }
 
