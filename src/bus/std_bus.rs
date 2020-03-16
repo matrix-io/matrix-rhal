@@ -1,4 +1,4 @@
-use super::BusImpl;
+use super::MatrixBus;
 use crate::{bus::memory_map::*, error::Error, Device};
 use nix::fcntl::{open, OFlag}; // https://linux.die.net/man/3/open
 use nix::sys::stat::Mode;

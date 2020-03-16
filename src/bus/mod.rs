@@ -11,7 +11,7 @@ without_std! {
     pub use no_std_bus::Bus as Bus;
 }
 
-trait BusImpl {
+trait MatrixBus {
     fn write(&self, write_buffer: &mut [u8]);
     fn read(&self, read_buffer: &mut [u8]);
     fn close(&self);
