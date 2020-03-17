@@ -4,9 +4,9 @@ pub mod bus;
 mod error;
 mod everloop;
 pub mod gpio;
+pub mod info;
 mod sensors;
 
-pub use bus::Bus;
 pub use error::Error;
 pub use everloop::Everloop;
 pub use everloop::Rgbw;
