@@ -4,29 +4,36 @@ use crate::{bus::memory_map::*, error::Error, Device};
 #[derive(Debug)]
 pub struct Bus {}
 
-impl Bus {
-    pub fn init() -> Result<Bus, Error> {
+pub fn init() -> Result<Bus, Error> {
+    unimplemented!()
+}
+
+impl MatrixBus for Bus {
+    fn write(&self, write_buffer: &mut [u8]) {
         unimplemented!()
     }
-    pub fn device_name(&self) -> Device {
+
+    fn read(&self, read_buffer: &mut [u8]) {
         unimplemented!()
     }
-    pub fn device_version(&self) -> u32 {
+
+    fn close(&self) {
         unimplemented!()
     }
-    pub fn device_leds(&self) -> u8 {
+
+    fn device_name(&self) -> Device {
         unimplemented!()
     }
-    pub fn fpga_frequency(&self) -> u32 {
+
+    fn device_version(&self) -> u32 {
         unimplemented!()
     }
-    pub fn write(&self, write_buffer: &mut [u8]) {
+
+    fn device_leds(&self) -> u8 {
         unimplemented!()
     }
-    pub fn read(&self, read_buffer: &mut [u8]) {
-        unimplemented!()
-    }
-    pub fn close(&self) {
+
+    fn fpga_frequency(&self) -> u32 {
         unimplemented!()
     }
 }

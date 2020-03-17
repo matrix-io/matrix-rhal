@@ -1,19 +1,18 @@
 mod led;
 use crate::bus::memory_map::*;
-use crate::Bus;
+use crate::bus::MatrixBus;
 use core::intrinsics::transmute;
 use heapless::{consts::U64 as MAX_LEDS, Vec};
 pub use led::Rgbw;
 
 /// Controls the ring of LEDS on a MATRIX device.
-#[derive(Debug)]
 pub struct Everloop<'a> {
-    bus: &'a Bus,
+    bus: &'a dyn MatrixBus,
 }
 
 impl<'a> Everloop<'a> {
     /// Return an instance of Everloop.
-    pub fn new(bus: &Bus) -> Everloop {
+    pub fn new(bus: &dyn MatrixBus) -> Everloop {
         Everloop { bus }
     }
 

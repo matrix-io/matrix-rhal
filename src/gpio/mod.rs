@@ -1,4 +1,4 @@
-use crate::Bus;
+use crate::bus::MatrixBus;
 use crate::Error;
 pub mod bank;
 pub mod config;
@@ -9,9 +9,8 @@ use core::intrinsics::transmute;
 use core::sync::atomic::{AtomicU16, Ordering};
 
 /// Controls the GPIO pins on a MATRIX device.
-#[derive(Debug)]
 pub struct Gpio<'a> {
-    bus: &'a Bus,
+    bus: &'a dyn MatrixBus,
     /// Current setting of each pin's mode (binary representation).
     mode_pin_map: AtomicU16,
     /// Current setting of each pin's state (binary representation).
@@ -26,14 +25,14 @@ pub struct Gpio<'a> {
 
 impl<'a> Gpio<'a> {
     /// Returns an instance of GPIO.
-    pub fn new(bus: &'a Bus) -> Gpio {
+    pub fn new(bus: &'a dyn MatrixBus) -> Gpio {
         Gpio {
             bus,
             mode_pin_map: AtomicU16::new(0x0),
             state_pin_map: AtomicU16::new(0x0),
             function_pin_map: AtomicU16::new(0x0),
             prescaler_bank_map: AtomicU16::new(0x0),
-            banks: Bank::new_set(&bus),
+            banks: Bank::new_set(bus),
         }
     }
 

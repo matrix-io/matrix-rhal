@@ -1,5 +1,5 @@
 use crate::bus::memory_map::*;
-use crate::Bus;
+use crate::bus::MatrixBus;
 use core::intrinsics::transmute;
 
 /// Bank contains functions to configure a PWM.
@@ -12,9 +12,9 @@ use core::intrinsics::transmute;
 /// Bank 2: pins (8->11)
 ///
 /// Bank 3: pins (12->15)
-#[derive(Debug, Clone, Copy)]
+#[derive(Clone, Copy)]
 pub struct Bank<'a> {
-    bus: &'a Bus,
+    bus: &'a dyn MatrixBus,
     /// FPGA memory offset
     pub memory_offset: u16,
     pub timer_setup: u16,
@@ -22,7 +22,7 @@ pub struct Bank<'a> {
 
 impl<'a> Bank<'a> {
     /// Create a new instance of GPIO Bank.
-    pub fn new(bus: &Bus) -> Bank {
+    pub fn new(bus: &dyn MatrixBus) -> Bank {
         Bank {
             bus,
             memory_offset: 0x0,
@@ -31,11 +31,11 @@ impl<'a> Bank<'a> {
     }
 
     /// Create 4 banks configured for use in a MATRIX device.
-    pub fn new_set(bus: &Bus) -> [Bank; 4] {
+    pub fn new_set(bus: &dyn MatrixBus) -> [Bank; 4] {
         let mut gpio_base_address = fpga_address::GPIO + 4;
 
         // create a bank for each set of 4 pins
-        let mut banks = [Bank::new(&bus); 4];
+        let mut banks = [Bank::new(bus); 4];
 
         // configure each bank with the proper address offsets
         for i in 0..4 {
