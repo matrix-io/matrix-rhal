@@ -62,8 +62,12 @@ pub trait MatrixBus {
     /// If possible, close the connection to the MATRIX Bus.
     fn close(&self);
 
+    /// Get the type of MATRIX device that's being used.
     fn device_name(&self) -> Device;
+    /// Get the board version number of the MATRIX device being used.
     fn device_version(&self) -> u32;
+    /// Get the number of LEDs in the everloop of the MATRIX device (the ring of LEDs).
     fn device_leds(&self) -> u8;
+    /// Get the FPGA clock speed.
     fn fpga_frequency(&self) -> u32;
 }
