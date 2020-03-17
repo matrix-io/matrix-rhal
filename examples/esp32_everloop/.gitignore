@@ -1,0 +1,11 @@
+# ESP-IDF generated
+/build
+/main
+/sdkconfig
+
+# Rust folders
+/target
+
+# Re-add needed stuff
+!/.cargo
+!/Makefile

@@ -20,7 +20,7 @@ macro_rules! without_std { ($($i:item)*) => ($(#[cfg(not(feature = "std"))]$i)*)
 
 /// The Different types of MATRIX Devices
 #[derive(Copy, Clone, Debug, PartialEq)]
-#[non_exhaustive]
+#[cfg_attr(feature = "std", non_exhaustive)] // Xtensa support currently limited to Rust 1.37
 pub enum Device {
     /// MATRIX Creator.
     Creator,
