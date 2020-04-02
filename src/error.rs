@@ -21,9 +21,10 @@ pub enum Error {
     #[fail(display = "Failed to convert value {} to enum", value)]
     EnumFromIntError { value: u32 },
 
+    /// ESP-IDF call failed.
     #[cfg(not(feature = "std"))]
     #[fail(display = "esp-idf error: {}", error)]
-    EspIdf { error: crate::bus::esp::Error },
+    EspIdf { error: crate::bus::esp::error::EspError },
 }
 
 with_std! {

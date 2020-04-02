@@ -4,6 +4,7 @@
 extern crate matrix_rhal;
 
 use esp_idf_sys as esp;
+use matrix_rhal::bus::MatrixBus;
 
 fn is_little_endian() -> bool {
     let value = 1u32;
@@ -14,11 +15,15 @@ fn is_little_endian() -> bool {
 #[no_mangle]
 pub fn app_main() {
     unsafe {
-        esp::ets_printf(
-            b"Little-endian=%d\n\0".as_ptr() as *const _,
-            is_little_endian() as u32,
-        );
+        
         let bus = matrix_rhal::bus::init();
+
+        esp::ets_printf(
+            b"Little-endian=%d freq=%d\n\0".as_ptr() as *const _,
+            is_little_endian() as u32,
+            bus.fpga_frequency()
+        );
+
         let everloop = matrix_rhal::Everloop::new(&bus);
 
         let mut counter = 0;

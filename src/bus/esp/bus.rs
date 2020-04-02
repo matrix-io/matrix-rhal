@@ -1,4 +1,4 @@
-use super::MatrixBus;
+use super::*;
 use crate::{bus::memory_map::*, error::Error, Device};
 use core::convert::TryFrom;
 
@@ -6,10 +6,6 @@ use core::convert::TryFrom;
 pub struct Bus {
     spi: esp_idf_sys::spi_device_handle_t,
     fpga_frequency: u32,
-}
-
-pub fn init() -> impl MatrixBus {
-    Bus::init().unwrap()
 }
 
 struct GpioPin {
@@ -21,79 +17,6 @@ const FPGA_SPI_MOSI: GpioPin = GpioPin { index: 33 };
 const FPGA_SPI_MISO: GpioPin = GpioPin { index: 21 };
 const FPGA_SPI_SCLK: GpioPin = GpioPin { index: 32 };
 const BUFFER_SIZE: usize = 512;
-
-pub mod esp {
-    #[repr(u32)]
-    #[derive(Debug, failure::Fail)]
-    /// Error types mapped to ESP-IDF failure values.
-    pub enum Error {
-        #[fail(display = "NO_MEM")]
-        NoMem = esp_idf_sys::ESP_ERR_NO_MEM,
-        #[fail(display = "INVALID_ARG")]
-        InvalidArg = esp_idf_sys::ESP_ERR_INVALID_ARG,
-        #[fail(display = "INVALID_STATE")]
-        InvalidState = esp_idf_sys::ESP_ERR_INVALID_STATE,
-        #[fail(display = "INVALID_SIZE")]
-        InvalidSize = esp_idf_sys::ESP_ERR_INVALID_SIZE,
-        #[fail(display = "NOT_FOUND")]
-        NotFound = esp_idf_sys::ESP_ERR_NOT_FOUND,
-        #[fail(display = "NOT_SUPPORTED")]
-        NotSupported = esp_idf_sys::ESP_ERR_NOT_SUPPORTED,
-        #[fail(display = "TIMEOUT")]
-        Timeout = esp_idf_sys::ESP_ERR_TIMEOUT,
-        #[fail(display = "INVALID_RESPONSE")]
-        InvalidResponse = esp_idf_sys::ESP_ERR_INVALID_RESPONSE,
-        #[fail(display = "INVALID_CRC")]
-        InvalidCrc = esp_idf_sys::ESP_ERR_INVALID_CRC,
-        #[fail(display = "INVALID_VERSION")]
-        InvalidVersion = esp_idf_sys::ESP_ERR_INVALID_VERSION,
-        #[fail(display = "INVALID_MAC")]
-        InvalidMac = esp_idf_sys::ESP_ERR_INVALID_MAC,
-        #[fail(display = "WIFI_BASE")]
-        WifiBase = esp_idf_sys::ESP_ERR_WIFI_BASE,
-        #[fail(display = "MESH_BASE")]
-        MeshBase = esp_idf_sys::ESP_ERR_MESH_BASE,
-    }
-
-    pub struct EnumFromIntError(u32);
-
-    /// Attempts to convert int returned from ESP-IDF into `Error`
-    impl core::convert::TryFrom<i32> for Error {
-        type Error = EnumFromIntError;
-        fn try_from(value: i32) -> core::result::Result<Self, Self::Error> {
-            use Error::*;
-            match value as u32 {
-                esp_idf_sys::ESP_ERR_NO_MEM => Ok(NoMem),
-                esp_idf_sys::ESP_ERR_INVALID_ARG => Ok(InvalidArg),
-                esp_idf_sys::ESP_ERR_INVALID_STATE => Ok(InvalidState),
-                esp_idf_sys::ESP_ERR_INVALID_SIZE => Ok(InvalidSize),
-                esp_idf_sys::ESP_ERR_NOT_FOUND => Ok(NotFound),
-                esp_idf_sys::ESP_ERR_NOT_SUPPORTED => Ok(NotSupported),
-                esp_idf_sys::ESP_ERR_TIMEOUT => Ok(Timeout),
-                esp_idf_sys::ESP_ERR_INVALID_RESPONSE => Ok(InvalidResponse),
-                esp_idf_sys::ESP_ERR_INVALID_CRC => Ok(InvalidCrc),
-                esp_idf_sys::ESP_ERR_INVALID_VERSION => Ok(InvalidVersion),
-                esp_idf_sys::ESP_ERR_INVALID_MAC => Ok(InvalidMac),
-                esp_idf_sys::ESP_ERR_WIFI_BASE => Ok(WifiBase),
-                esp_idf_sys::ESP_ERR_MESH_BASE => Ok(MeshBase),
-                value => Err(EnumFromIntError(value)),
-            }
-        }
-    }
-}
-
-/// Converts `i32` returned by ESP-IDF native functions into `Result`
-fn esp_int_into_result(value: i32) -> Result<(), crate::error::Error> {
-    if value == 0 {
-        Ok(())
-    } else if let Ok(error) = esp::Error::try_from(value) {
-        Err(Error::EspIdf { error })
-    } else {
-        Err(Error::EnumFromIntError {
-            value: value as u32,
-        })
-    }
-}
 
 impl Bus {
     pub fn init() -> Result<Bus, Error> {

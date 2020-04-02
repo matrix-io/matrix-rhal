@@ -1,5 +1,5 @@
 [package]
-name = "esp32_sample"
+name = "esp32_everloop"
 version = "0.1.0"
 authors = ["jeikabu <jeikabu@users.noreply.github.com>"]
 edition = "2018"

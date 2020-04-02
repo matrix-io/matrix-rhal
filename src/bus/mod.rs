@@ -7,9 +7,8 @@ with_std! {
 }
 
 without_std! {
-    mod no_std_bus;
-    pub use no_std_bus::init;
-    pub use no_std_bus::esp as esp;
+    pub mod esp;
+    pub use esp::init;
 }
 
 pub trait MatrixBus {
