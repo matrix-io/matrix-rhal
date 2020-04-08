@@ -8,3 +8,6 @@ edition = "2018"
 matrix_rhal = {version = "0.0.6", path = "../../", default-features = false}
 cty = "0.2"
 esp-idf-sys = "0.1.2"
+
+[build-dependencies]
+esp_idf_build = "0.1"

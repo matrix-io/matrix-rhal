@@ -15,13 +15,12 @@ fn is_little_endian() -> bool {
 #[no_mangle]
 pub fn app_main() {
     unsafe {
-        
         let bus = matrix_rhal::bus::init();
 
         esp::ets_printf(
             b"Little-endian=%d freq=%d\n\0".as_ptr() as *const _,
             is_little_endian() as u32,
-            bus.fpga_frequency()
+            bus.fpga_frequency(),
         );
 
         let everloop = matrix_rhal::Everloop::new(&bus);
@@ -38,7 +37,7 @@ pub fn app_main() {
             everloop.set(&image1d);
 
             counter += 1;
-            
+
             // Set RTC timer to trigger wakeup and then enter light sleep
             esp::esp_sleep_enable_timer_wakeup(25000);
             esp::esp_light_sleep_start();
