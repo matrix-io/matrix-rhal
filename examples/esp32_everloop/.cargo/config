@@ -19,6 +19,7 @@ rustflags = [
   "-C", "link-arg=-Wl,--start-group",
 
   "-C", "link-arg=-lapp_update",
+  "-C", "link-arg=-lbootloader_support",
   "-C", "link-arg=-lcore",
   "-C", "link-arg=-ldriver",
   "-C", "link-arg=-lesp32",

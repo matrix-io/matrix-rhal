@@ -17,6 +17,7 @@ const FPGA_SPI_MOSI: GpioPin = GpioPin { index: 33 };
 const FPGA_SPI_MISO: GpioPin = GpioPin { index: 21 };
 const FPGA_SPI_SCLK: GpioPin = GpioPin { index: 32 };
 const BUFFER_SIZE: usize = 512;
+const SPI_HOST_DEVICE: esp_idf_sys::spi_host_device_t = esp_idf_sys::spi_host_device_t_HSPI_HOST;
 
 impl Bus {
     pub fn init() -> Result<Bus, Error> {
@@ -42,26 +43,24 @@ impl Bus {
                 ..::core::mem::zeroed()
             };
             let retval = esp_idf_sys::spi_bus_initialize(
-                esp_idf_sys::spi_host_device_t_HSPI_HOST,
+                SPI_HOST_DEVICE,
                 &bus_config,
                 1,
             );
             esp_int_into_result(retval)?;
             let mut spi: esp_idf_sys::spi_device_handle_t = core::ptr::null_mut();
             let retval = esp_idf_sys::spi_bus_add_device(
-                esp_idf_sys::spi_host_device_t_HSPI_HOST,
+                SPI_HOST_DEVICE,
                 &device_config,
                 &mut spi,
             );
             esp_int_into_result(retval)?;
-            let mut bus = Bus { spi, fpga_frequency: 0 };
-            bus.fpga_frequency = bus.get_fpga_frequency()?;
+            let mut bus = Bus { spi, ..Default::default() };
+            bus.set_fpga_frequency()?;
             Ok(bus)
         }
     }
-}
 
-impl Bus {
     fn transfer(
         &self,
         send_buffer: &[u8],
@@ -72,8 +71,8 @@ impl Bus {
             // Based on:
             // https://github.com/matrix-io/matrixio_hal_esp32/blob/320c897c0790fc7a0c83201f4f05a11a6c453f25/components/hal/wishbone_bus.cpp#L77
             let mut transaction = esp_idf_sys::spi_transaction_t {
-                length: 8 * size,
-                rxlength: 8 * size,
+                length: 8 * size as u32,
+                rxlength: 8 * size as u32,
                 __bindgen_anon_1: esp_idf_sys::spi_transaction_t__bindgen_ty_1 {
                     tx_buffer: send_buffer.as_ptr() as *const _,
                 },
@@ -88,7 +87,7 @@ impl Bus {
     }
     
     /// Use SPI request to make uncached read of FPGA frequency
-    fn get_fpga_frequency(&self) -> Result<u32, Error> {
+    fn set_fpga_frequency(&mut self) -> Result<(), Error> {
         // Based off:
         // https://github.com/matrix-io/matrixio_hal_esp32/blob/320c897c0790fc7a0c83201f4f05a11a6c453f25/components/hal/wishbone_bus.cpp#L132
         // The original C:
@@ -113,7 +112,8 @@ impl Bus {
             let value1 = data.halfwords[1] as u32;
             (device_info::FPGA_CLOCK * value1) / value0
         };
-        Ok(frequency)
+        self.fpga_frequency = frequency;
+        Ok(())
     }
 
     /// Use SPI to read from `address`, `read_buffer.len()` bytes into `read_buffer`.
@@ -146,6 +146,16 @@ impl Bus {
         self.transfer(&tx_buffer, &mut rx_buffer, write_buffer.len() + HARDWARE_ADDRESS_BYTES).unwrap();
     }
 }
+
+impl core::default::Default for Bus {
+    fn default() -> Self {
+        Self {
+            spi: core::ptr::null_mut(),
+            fpga_frequency: 0,
+        }
+    }
+}
+
 
 /// Command placed in SPI transmit buffer from the original C version:
 /// ```c
@@ -197,7 +207,14 @@ impl MatrixBus for Bus {
     }
 
     fn close(&self) {
-        // Do nothing
+        unsafe {
+            // Unload driver for devices before removing driver for bus
+            let retval = esp_idf_sys::spi_bus_remove_device(self.spi);
+            esp_int_into_result(retval).unwrap();
+            // Remove driver for bus
+            let retval = esp_idf_sys::spi_bus_free(SPI_HOST_DEVICE);
+            esp_int_into_result(retval).unwrap();
+        }   
     }
 
     fn device_name(&self) -> Device {

@@ -1,7 +1,6 @@
 use super::MatrixBus;
 use core::convert::TryFrom;
 pub mod bus;
-pub mod error;
 
 pub fn init() -> impl MatrixBus {
     bus::Bus::init().unwrap()
@@ -11,7 +10,7 @@ pub fn init() -> impl MatrixBus {
 fn esp_int_into_result(value: i32) -> Result<(), crate::Error> {
     if value == 0 {
         Ok(())
-    } else if let Ok(error) = error::EspError::try_from(value) {
+    } else if let Ok(error) = esp_idf::error::EspError::try_from(value) {
         Err(crate::Error::EspIdf { error })
     } else {
         Err(crate::Error::EnumFromIntError {

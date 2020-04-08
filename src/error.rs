@@ -24,9 +24,7 @@ pub enum Error {
     /// ESP-IDF call failed.
     #[cfg(not(feature = "std"))]
     #[fail(display = "esp-idf error: {}", error)]
-    EspIdf {
-        error: crate::bus::esp::error::EspError,
-    },
+    EspIdf { error: esp_idf::error::EspError },
 }
 
 with_std! {
