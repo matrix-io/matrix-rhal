@@ -157,13 +157,6 @@ impl Bus {
 type HardwareAddress = [u8; core::mem::size_of::<u16>()];
 /// Size of `HardwareAddress` in bytes
 const HARDWARE_ADDRESS_BYTES: usize = core::mem::size_of::<HardwareAddress>();
-/// Buffers passed to `impl MatrixBus` methods contain:
-/// | Bytes | |
-/// |-|-|
-/// | 0-3 | Address for SPI operation
-/// | 4-7 | Size of data
-/// | 8.. | Data
-const MATRIXBUS_HEADER_BYTES: usize = core::mem::size_of::<i32>() * 2;
 
 /// Construct command placed in SPI transmit buffer.
 /// In the original C version:
@@ -200,14 +193,14 @@ impl MatrixBus for Bus {
         let buffer_u32 = unsafe { core::intrinsics::transmute::<&mut [u8], &mut [u32]>(write_buffer) };
         let address = u16::try_from(buffer_u32[0]).unwrap();
         // Write actual data to the address
-        self.write_address(address, &write_buffer[MATRIXBUS_HEADER_BYTES..])
+        self.write_address(address, &write_buffer[crate::MATRIXBUS_HEADER_BYTES..])
     }
 
     fn read(&self, read_buffer: &mut [u8]) {
         // Unpack the read address from the first 32-bits
         let buffer_u32 = unsafe { core::intrinsics::transmute::<&mut [u8], &mut [u32]>(read_buffer) };
         let address = u16::try_from(buffer_u32[0]).unwrap();
-        self.read_address(address, &mut read_buffer[MATRIXBUS_HEADER_BYTES..])
+        self.read_address(address, &mut read_buffer[crate::MATRIXBUS_HEADER_BYTES..])
     }
 
     fn close(&self) {

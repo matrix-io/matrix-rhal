@@ -25,6 +25,7 @@ std = ["nix", "failure"]
 failure = {version = "0.1.7", optional = true}
 heapless = "0.5.3"
 nix = {version = "0.16.1", optional = true}
+typenum = "1.12"
 
 # Dependencies for Matrix Voice w/ ESP32
 [target.'cfg(target_arch = "xtensa")'.dependencies]

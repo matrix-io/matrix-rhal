@@ -1,11 +1,34 @@
 mod led;
 use crate::bus::memory_map::*;
 use crate::bus::MatrixBus;
-use heapless::{consts::U144 as MAX_LED_BYTES, Vec};
+use heapless::Vec;
+use typenum::Unsigned;
 pub use led::Rgbw;
 
 /// Bytes to set LED color as [R, G, B, W].
 type LedBytes = [u8; 4];
+/// Heapless capacity type large enough maximum number of possible LEDs across all devices.
+type MaxLeds = heapless::consts::U35;
+/// Heapless capacity type large enough for byte array of maximum possible LEDs and header bytes as passed to `MatrixBus` methods.
+type MaxLedBytes = heapless::consts::U148;
+
+const LED_BYTES: usize = core::mem::size_of::<LedBytes>();
+
+fn _compile_time_checks() {
+    // Need to enforce constraint that certain const/enum values correspond to heapless capacity type "values".
+    // One way to accomplish this is to use both as the length of an array and assign them to eachother.  If the values 
+    // differ, the arrays are different lengths and type, and Rust will trigger a compiler error.
+    {
+        // Require `MaxLeds` == `MATRIX_CREATOR_LEDS`
+        type ValueArray = [u8; device_info::MATRIX_CREATOR_LEDS as usize];
+        let _unused: ValueArray = [0u8; MaxLeds::USIZE];
+    }
+    {
+        // Require `MaxLedBytes` has enough space to maximum possible LEDs and header bytes
+        type ValueArray = [u8; device_info::MATRIX_CREATOR_LEDS as usize * LED_BYTES + crate::MATRIXBUS_HEADER_BYTES];
+        let _unused: ValueArray = [0u8; MaxLedBytes::USIZE];
+    }
+}
 
 /// Controls the ring of LEDS on a MATRIX device.
 pub struct Everloop<'a> {
@@ -34,8 +57,8 @@ impl<'a> Everloop<'a> {
         }
 
         // create write buffer
-        let led_bytes = device_leds * core::mem::size_of::<LedBytes>();
-        let mut request: Vec<u8, MAX_LED_BYTES> = Vec::new();
+        let led_bytes = device_leds * LED_BYTES;
+        let mut request: Vec<u8, MaxLedBytes> = Vec::new();
         request.extend_from_slice(&(fpga_address::EVERLOOP as i32).to_ne_bytes()).unwrap();
         request.extend_from_slice(&(led_bytes as i32).to_ne_bytes()).unwrap(); // each LED RGBW requires 4 bytes
 
@@ -54,8 +77,7 @@ impl<'a> Everloop<'a> {
 
     /// Set all MATRIX LEDs to a single color
     pub fn set_all(&self, color: Rgbw) {
-        // The array length, `N` must be equal to largest number of LEDs.  In this case MATRIX Creator
-        let leds: Vec<Rgbw, heapless::consts::U35> = core::iter::repeat(color).take(self.bus.device_leds() as usize).collect();
+        let leds: Vec<Rgbw, MaxLeds> = core::iter::repeat(color).take(self.bus.device_leds() as usize).collect();
         self.set(&leds)
     }
 }

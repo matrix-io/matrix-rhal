@@ -7,6 +7,11 @@ docker run --rm -it -v $(pwd):/home/matrix-io quay.io/ctron/rust-esp /bin/bash
 
 cd /home/matrix-io/examples/esp32_everloop
 
+# Create dummy app_main stub
+mkdir main
+echo "void app_main() {}" > main/esp_app_main.c
+touch main/component.mk
+
 # Build ESP-IDF
 make menuconfig
 make -j4
