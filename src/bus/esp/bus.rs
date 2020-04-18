@@ -17,7 +17,7 @@ const FPGA_SPI_MOSI: GpioPin = GpioPin { index: 33 };
 const FPGA_SPI_MISO: GpioPin = GpioPin { index: 21 };
 const FPGA_SPI_SCLK: GpioPin = GpioPin { index: 32 };
 const BUFFER_SIZE: usize = 512;
-const SPI_HOST_DEVICE: esp_idf_sys::spi_host_device_t = esp_idf_sys::spi_host_device_t_HSPI_HOST;
+const SPI_HOST_DEVICE: esp_idf_sys::spi_host_device_t = esp_idf_sys::spi_host_device_t_SPI2_HOST;
 
 impl Bus {
     pub fn init() -> Result<Bus, Error> {

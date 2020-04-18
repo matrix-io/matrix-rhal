@@ -7,7 +7,7 @@ edition = "2018"
 [dependencies]
 matrix_rhal = {version = "0.0.6", path = "../../", default-features = false}
 cty = "0.2"
-esp-idf-sys = "0.1.2"
+esp-idf-sys = {version = "0.1", path = "../../esp-idf-sys/esp-idf-sys" }
 
 [build-dependencies]
 esp_idf_build = {version = "0.1", path = "../../esp_idf_build"}
