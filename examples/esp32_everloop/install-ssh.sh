@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # Default image name in `Makefile`, found in `build/` after `make menuconfig && make`
-FIRMWARE=esp-app.bin
+FIRMWARE=${FIRMWARE-esp-app.bin}
 
 exit_value=0
 if [ "$1" = "" ]; then

@@ -119,5 +119,5 @@ rustflags = [
   "-C", "link-arg=-Wl,--end-group",
   "-C", "link-arg=-Wl,-EL",
   "-C", "link-arg=-fno-rtti",
-  "-C", "link-arg=-Wl,-Map=esp-app.map",
+  #"-C", "link-arg=-Wl,-Map=esp-app.map",
 ]
