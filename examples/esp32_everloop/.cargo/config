@@ -1,0 +1,54 @@
+[build]
+target = "xtensa-esp32-none-elf"
+
+[target.xtensa-esp32-none-elf]
+rustflags = [
+  "-C", "target-cpu=esp32",
+  "-C", "save-temps",
+  "-C", "link-arg=-nostdlib",
+#  "-C", "link-arg=-nostartfiles",
+
+  "-C", "link-arg=-ucall_user_start_cpu0",
+  "-C", "link-arg=-u__cxa_guard_dummy",
+  "-C", "link-arg=-u__cxx_fatal_exception",
+  "-C", "link-arg=-uld_include_panic_highint_hdl",
+  "-C", "link-arg=-uesp_app_desc",
+
+  "-C", "link-arg=-Wl,--gc-sections",
+  "-C", "link-arg=-Wl,-static",
+  "-C", "link-arg=-Wl,--start-group",
+
+  "-C", "link-arg=-lapp_update",
+  "-C", "link-arg=-lcore",
+  "-C", "link-arg=-ldriver",
+  "-C", "link-arg=-lesp32",
+  "-C", "link-arg=-lesp_ringbuf",
+  "-C", "link-arg=-lesp-tls",
+  "-C", "link-arg=-lfreertos",
+  "-C", "link-arg=-lhal",
+  "-C", "link-arg=-lheap",
+  "-C", "link-arg=-llog",
+  "-C", "link-arg=-lnewlib",
+  "-C", "link-arg=-lpthread",
+  "-C", "link-arg=-lsoc",
+  "-C", "link-arg=-lspi_flash",
+  "-C", "link-arg=-lvfs",
+  "-C", "link-arg=-lxtensa-debug-module",
+
+  "-C", "link-arg=-Tesp32_out.ld",
+  "-C", "link-arg=-Tesp32.project.ld",
+  "-C", "link-arg=-Tesp32.rom.ld",
+  "-C", "link-arg=-Tesp32.peripherals.ld",
+  "-C", "link-arg=-Tesp32.rom.libgcc.ld",
+  "-C", "link-arg=-Tesp32.rom.spiram_incompatible_fns.ld",
+  
+  "-C", "link-arg=-Wl,--undefined=uxTopUsedPriority",
+
+  "-C", "link-arg=-lc",
+  "-C", "link-arg=-lm",
+  "-C", "link-arg=-lgcc",
+  "-C", "link-arg=-lstdc++",
+  "-C", "link-arg=-lgcov",
+  "-C", "link-arg=-Wl,--end-group",
+  "-C", "link-arg=-Wl,-EL",
+]

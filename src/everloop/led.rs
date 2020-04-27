@@ -24,7 +24,7 @@ impl Rgbw {
     }
 
     /// Return an integer representing the 4 bytes that make up `Rgbw`
-    pub fn as_bytes(self) -> i32 {
-        i32::from_le_bytes([self.r, self.g, self.b, self.w])
+    pub fn to_bytes(self) -> super::LedBytes {
+        [self.r, self.g, self.b, self.w]
     }
 }
