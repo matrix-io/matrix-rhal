@@ -2,21 +2,21 @@ mod led;
 use crate::bus::memory_map::*;
 use crate::bus::MatrixBus;
 use heapless::Vec;
-use typenum::Unsigned;
 pub use led::Rgbw;
+use typenum::Unsigned;
 
 /// Bytes to set LED color as [R, G, B, W].
 type LedBytes = [u8; 4];
 /// Heapless capacity type large enough maximum number of possible LEDs across all devices.
 type MaxLeds = heapless::consts::U35;
 /// Heapless capacity type large enough for byte array of maximum possible LEDs and header bytes as passed to `MatrixBus` methods.
-type MaxLedBytes = heapless::consts::U148;
+type MaxLedBytes = heapless::consts::U140;
 
 const LED_BYTES: usize = core::mem::size_of::<LedBytes>();
 
 fn _compile_time_checks() {
     // Need to enforce constraint that certain const/enum values correspond to heapless capacity type "values".
-    // One way to accomplish this is to use both as the length of an array and assign them to eachother.  If the values 
+    // One way to accomplish this is to use both as the length of an array and assign them to eachother.  If the values
     // differ, the arrays are different lengths and type, and Rust will trigger a compiler error.
     {
         // Require `MaxLeds` == `MATRIX_CREATOR_LEDS`
@@ -25,7 +25,7 @@ fn _compile_time_checks() {
     }
     {
         // Require `MaxLedBytes` has enough space to maximum possible LEDs and header bytes
-        type ValueArray = [u8; device_info::MATRIX_CREATOR_LEDS as usize * LED_BYTES + crate::MATRIXBUS_HEADER_BYTES];
+        type ValueArray = [u8; device_info::MATRIX_CREATOR_LEDS as usize * LED_BYTES];
         let _unused: ValueArray = [0u8; MaxLedBytes::USIZE];
     }
 }
@@ -59,8 +59,6 @@ impl<'a> Everloop<'a> {
         // create write buffer
         let led_bytes = device_leds * LED_BYTES;
         let mut request: Vec<u8, MaxLedBytes> = Vec::new();
-        request.extend_from_slice(&(fpga_address::EVERLOOP as i32).to_ne_bytes()).unwrap();
-        request.extend_from_slice(&(led_bytes as i32).to_ne_bytes()).unwrap(); // each LED RGBW requires 4 bytes
 
         // store all LED colors given
         for led in leds {
@@ -68,16 +66,20 @@ impl<'a> Everloop<'a> {
         }
         // set remaining LEDs to black
         for _ in 0..(device_leds - leds.len()) {
-            request.extend_from_slice(&Rgbw::black().to_bytes()).unwrap();
+            request
+                .extend_from_slice(&Rgbw::black().to_bytes())
+                .unwrap();
         }
         // render LEDs
         self.bus
-            .write(&mut request);
+            .write(fpga_address::EVERLOOP, &mut (request[..led_bytes]));
     }
 
     /// Set all MATRIX LEDs to a single color
     pub fn set_all(&self, color: Rgbw) {
-        let leds: Vec<Rgbw, MaxLeds> = core::iter::repeat(color).take(self.bus.device_leds() as usize).collect();
+        let leds: Vec<Rgbw, MaxLeds> = core::iter::repeat(color)
+            .take(self.bus.device_leds() as usize)
+            .collect();
         self.set(&leds)
     }
 }
