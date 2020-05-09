@@ -1,6 +1,5 @@
-use crate::bus::memory_map::*;
-use crate::bus::MatrixBus;
-use core::intrinsics::transmute;
+use crate::as_u8_slice;
+use crate::bus::{memory_map::*, MatrixBus};
 
 /// Bank contains functions to configure a PWM.
 /// A bank is a set of 4 pins, starting from pin 0 and going in order.
@@ -59,12 +58,8 @@ impl<'a> Bank<'a> {
     /// Send a bank configuration to the MATRIX bus.
     fn bus_write(&self, memory_offset: u16, timer_setup: u16) {
         // create and populate write buffer
-        let mut buffer: [u32; 3] = [0; 3];
-        buffer[0] = (memory_offset) as u32; // address to write to
-        buffer[1] = 2; // byte length of timer_setup
-        buffer[2] = timer_setup as u32;
+        let buffer = [timer_setup; 1];
 
-        self.bus
-            .write(unsafe { transmute::<&mut [u32], &mut [u8]>(&mut buffer) });
+        self.bus.write(memory_offset, as_u8_slice(&buffer));
     }
 }

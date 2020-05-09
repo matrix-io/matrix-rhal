@@ -68,15 +68,17 @@ impl Bus {
 }
 
 impl MatrixBus for Bus {
-    fn write(&self, write_buffer: &mut [u8]) {
+    fn write(&self, address: u16, write_buffer: &[u8]) {
         unsafe {
             // TODO: ....
+            unimplemented!()
         }
     }
 
-    fn read(&self, read_buffer: &mut [u8]) {
+    fn read(&self, address: u16, read_buffer: &mut [u8]) {
         unsafe {
             // TODO: ....
+            unimplemented!()
         }
     }
 

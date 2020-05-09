@@ -10,4 +10,4 @@ cty = "0.2"
 esp-idf-sys = "0.1.2"
 
 [build-dependencies]
-esp_idf_build = "0.1"
+esp_idf_build = ">= 0.1.0, < 0.1.1"

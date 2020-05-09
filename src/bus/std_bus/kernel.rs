@@ -1,6 +1,5 @@
 use super::super::MatrixBus;
-use crate::info;
-use crate::{bus::memory_map::*, error::Error, Device};
+use crate::{as_mut_u8_slice, as_u8_slice, bus::memory_map::*, error::Error, Device, info};
 use nix::fcntl::{open, OFlag}; // https://linux.die.net/man/3/open
 use nix::sys::stat::Mode;
 use nix::unistd::close;
@@ -61,18 +60,65 @@ impl Bus {
     }
 }
 
+// Calculate number of i32 needed to contain:
+// - Address
+// - Buffer size
+// - buffer.len() bytes
+fn ioctl_buffer_i32(buffer: &[u8]) -> usize {
+    const SIZE_OF_I32: usize = core::mem::size_of::<i32>();
+    // `(x + y - 1) / y` is the same as `ceiling(x as f32/y as f32) as usize`:
+    // |buffer.len() | return
+    // |-|-|
+    // | 0     | 2 + 0
+    // | 1 - 4 | 2 + 1
+    // | 5 - 8 | 2 + 2
+    2 + (buffer.len() + SIZE_OF_I32 - 1) / SIZE_OF_I32
+}
+
 impl MatrixBus for Bus {
-    fn write(&self, write_buffer: &mut [u8]) {
+    fn write(&self, address: u16, write_buffer: &[u8]) {
         unsafe {
+            // Pack request into word-sized/aligned buffer
+            // Bytes:
+            // [0..4] = address
+            // [4..8] = byte size of write payload
+            // [8..8+sizeof(payload)] = payload
+            let write_buffer = {
+                let mut retval = vec![0i32; ioctl_buffer_i32(write_buffer)];
+                retval[0] = address as i32;
+                retval[1] = write_buffer.len() as i32;
+                as_mut_u8_slice(&mut retval[2..])[..write_buffer.len()].copy_from_slice(write_buffer);
+                retval
+            };
             // TODO: error handling. Not sure if an error here would be worth recovering from.
-            ioctl_write(self.regmap_fd, write_buffer).expect("error in IOCTL WRITE");
+            ioctl_write(self.regmap_fd, as_u8_slice(&write_buffer[..])).expect("error in IOCTL WRITE");
         }
     }
 
-    fn read(&self, read_buffer: &mut [u8]) {
+    fn read(&self, address: u16, read_buffer: &mut [u8]) {
         unsafe {
+            // Pack request into word-sized/aligned buffer
+            // Bytes:
+            // [0..4] = address
+            // [4..8] = byte size of read request
+            // [8..8+sizeof(payload)] = destination for read payload
+            let mut buffer = {
+                let mut retval = vec![0i32; ioctl_buffer_i32(read_buffer)];
+                retval[0] = address as i32;
+                retval[1] = read_buffer.len() as i32;
+                retval
+            };
             // TODO: error handling. Not sure if an error here would be worth recovering from.
-            ioctl_read(self.regmap_fd, read_buffer).expect("error in IOCTL READ");
+            ioctl_read(self.regmap_fd, as_mut_u8_slice(&mut buffer[..])).expect("error in IOCTL READ");
+            // Copy read data back into original argument buffer
+            read_buffer.copy_from_slice(
+                &as_u8_slice(
+                    // Skip address and size words
+                    &buffer[2..]
+                )
+                // Limit to size of destination buffer (request was word-aligned)
+                [..read_buffer.len()]
+            );
         }
     }
 

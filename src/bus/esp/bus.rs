@@ -188,19 +188,12 @@ fn spi_address_bytes(address: u16, readnwrite: bool) -> HardwareAddress {
 }
 
 impl MatrixBus for Bus {
-    fn write(&self, write_buffer: &mut [u8]) {
-        // Unpack the write address from the first 32-bits
-        let buffer_u32 = unsafe { core::intrinsics::transmute::<&mut [u8], &mut [u32]>(write_buffer) };
-        let address = u16::try_from(buffer_u32[0]).unwrap();
-        // Write actual data to the address
-        self.write_address(address, &write_buffer[crate::MATRIXBUS_HEADER_BYTES..])
+    fn write(&self, address: u16, write_buffer: &[u8]) {
+        self.write_address(address, write_buffer)
     }
 
-    fn read(&self, read_buffer: &mut [u8]) {
-        // Unpack the read address from the first 32-bits
-        let buffer_u32 = unsafe { core::intrinsics::transmute::<&mut [u8], &mut [u32]>(read_buffer) };
-        let address = u16::try_from(buffer_u32[0]).unwrap();
-        self.read_address(address, &mut read_buffer[crate::MATRIXBUS_HEADER_BYTES..])
+    fn read(&self, address: u16, read_buffer: &mut [u8]) {
+        self.read_address(address, read_buffer)
     }
 
     fn close(&self) {

@@ -33,7 +33,7 @@ pub trait MatrixBus {
     ///  // send buffer
     ///  bus.write(unsafe { std::mem::transmute::<&mut [u32], &mut [u8]>(&mut buffer) });
     ///  ```
-    fn write(&self, write_buffer: &mut [u8]);
+    fn write(&self, address: u16, write_buffer: &[u8]);
 
     /// Send a read buffer to the MATRIX Bus. The buffer requires an `address` to request and
     /// the `byte_length` of what's expected to be returned. Once sent, the buffer return with populated
@@ -57,7 +57,7 @@ pub trait MatrixBus {
     ///  // returned data will start at buffer[2]
     ///  println!("{:?}", buffer);
     ///  ```
-    fn read(&self, read_buffer: &mut [u8]);
+    fn read(&self, address: u16, read_buffer: &mut [u8]);
 
     /// If possible, close the connection to the MATRIX Bus.
     fn close(&self);
