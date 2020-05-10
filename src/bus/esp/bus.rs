@@ -1,6 +1,5 @@
 use super::*;
-use crate::{bus::memory_map::*, error::Error, Device};
-use core::convert::TryFrom;
+use crate::{*, bus::memory_map::*, error::Error, Device};
 
 #[derive(Debug)]
 pub struct Bus {
@@ -16,8 +15,26 @@ const FPGA_SPI_CS: GpioPin = GpioPin { index: 23 };
 const FPGA_SPI_MOSI: GpioPin = GpioPin { index: 33 };
 const FPGA_SPI_MISO: GpioPin = GpioPin { index: 21 };
 const FPGA_SPI_SCLK: GpioPin = GpioPin { index: 32 };
-const BUFFER_SIZE: usize = 512;
 const SPI_HOST_DEVICE: esp_idf_sys::spi_host_device_t = esp_idf_sys::spi_host_device_t_SPI2_HOST;
+const BUFFER_SIZE: usize = 4096;
+
+// If DMA is enabled for SPI transfers, buffers must 32-bit aligned and 4 byte-multiple 
+// in length for maximum transaction efficiency.
+#[repr(align(32))]
+struct DMABuffer {
+    pub buffer: [u8; BUFFER_SIZE],
+}
+
+impl DMABuffer {
+    const fn create() -> Self {
+        Self {
+            buffer: [0u8; BUFFER_SIZE],
+        }
+    }
+}
+
+static mut G_TX_BUFFER: DMABuffer = DMABuffer::create();
+static mut G_RX_BUFFER: DMABuffer = DMABuffer::create();
 
 impl Bus {
     pub fn init() -> Result<Bus, Error> {
@@ -118,32 +135,28 @@ impl Bus {
 
     /// Use SPI to read from `address`, `read_buffer.len()` bytes into `read_buffer`.
     fn read_address(&self, address: u16, read_buffer: &mut [u8]) {
-        let tx_buffer = {
-            let tx_header = spi_address_bytes(address, true);
-            let mut tx_buffer = [0u8; BUFFER_SIZE];
-            tx_buffer[0..HARDWARE_ADDRESS_BYTES].copy_from_slice(&tx_header);
-            tx_buffer
-        };
-        let mut rx_buffer = [0u8; BUFFER_SIZE];
-        self.transfer(&tx_buffer, &mut rx_buffer, read_buffer.len() + HARDWARE_ADDRESS_BYTES).unwrap();
-        for (dst, src) in read_buffer.iter_mut().zip(rx_buffer.iter().skip(HARDWARE_ADDRESS_BYTES)) {
-            *dst = *src;
+        assert!(read_buffer.len() + HARDWARE_ADDRESS_BYTES <= BUFFER_SIZE);
+        let tx_header = spi_address_bytes(address, true);
+        unsafe {
+            G_TX_BUFFER.buffer[0..HARDWARE_ADDRESS_BYTES].copy_from_slice(&tx_header);
+            self.transfer(&G_TX_BUFFER.buffer, &mut G_RX_BUFFER.buffer, read_buffer.len() + HARDWARE_ADDRESS_BYTES).unwrap();
+            for (dst, src) in read_buffer.iter_mut().zip(G_RX_BUFFER.buffer.iter().skip(HARDWARE_ADDRESS_BYTES)) {
+                *dst = *src;
+            }
         }
     }
 
     /// Use SPI to write to `address`, `write_buffer.len()` bytes from `write_buffer`.
     fn write_address(&self, address: u16, write_buffer: &[u8]) {
-        let tx_buffer = {
-            let tx_header = spi_address_bytes(address, false);
-            let mut tx_buffer = [0u8; BUFFER_SIZE];
-            tx_buffer[0..HARDWARE_ADDRESS_BYTES].copy_from_slice(&tx_header);
-            for (dst, src) in tx_buffer.iter_mut().skip(HARDWARE_ADDRESS_BYTES).zip(write_buffer.iter()) {
+        assert!(write_buffer.len() + HARDWARE_ADDRESS_BYTES <= BUFFER_SIZE);
+        let tx_header = spi_address_bytes(address, false);
+        unsafe {
+            G_TX_BUFFER.buffer[0..HARDWARE_ADDRESS_BYTES].copy_from_slice(&tx_header);
+            for (dst, src) in G_TX_BUFFER.buffer.iter_mut().skip(HARDWARE_ADDRESS_BYTES).zip(write_buffer.iter()) {
                 *dst = *src;
             }
-            tx_buffer
-        };
-        let mut rx_buffer = [0u8; BUFFER_SIZE];
-        self.transfer(&tx_buffer, &mut rx_buffer, write_buffer.len() + HARDWARE_ADDRESS_BYTES).unwrap();
+            self.transfer(&G_TX_BUFFER.buffer, &mut G_RX_BUFFER.buffer, write_buffer.len() + HARDWARE_ADDRESS_BYTES).unwrap();
+        }
     }
 }
 

@@ -1,5 +1,5 @@
 use crate::bus::{memory_map::*, MatrixBus};
-use crate::{as_mut_u8_slice, as_u8_slice, Error};
+use crate::{as_mut_bytes, as_bytes, Error};
 pub mod bank;
 pub mod config;
 pub use bank::*;
@@ -104,7 +104,7 @@ impl<'a> Gpio<'a> {
         // populate buffer
         // the buffer will be passed a value that contains the state of each GPIO pin
         self.bus
-            .read(fpga_address::GPIO + address_offset, as_mut_u8_slice(buffer));
+            .read(fpga_address::GPIO + address_offset, as_mut_bytes(buffer));
     }
 }
 
@@ -146,7 +146,7 @@ impl<'a> Gpio<'a> {
         let buffer = [value; 1];
 
         self.bus
-            .write(fpga_address::GPIO + address_offset, as_u8_slice(&buffer));
+            .write(fpga_address::GPIO + address_offset, as_bytes(&buffer));
     }
 
     /// Set the prescaler value for a specific bank

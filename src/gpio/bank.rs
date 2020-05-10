@@ -1,4 +1,4 @@
-use crate::as_u8_slice;
+use crate::as_bytes;
 use crate::bus::{memory_map::*, MatrixBus};
 
 /// Bank contains functions to configure a PWM.
@@ -60,6 +60,6 @@ impl<'a> Bank<'a> {
         // create and populate write buffer
         let buffer = [timer_setup; 1];
 
-        self.bus.write(memory_offset, as_u8_slice(&buffer));
+        self.bus.write(memory_offset, as_bytes(&buffer));
     }
 }

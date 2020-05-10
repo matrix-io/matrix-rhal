@@ -5,6 +5,7 @@ mod error;
 mod everloop;
 pub mod gpio;
 pub mod info;
+pub mod microphone;
 mod sensors;
 
 pub use error::Error;
@@ -38,12 +39,39 @@ fn as_mut_slice<'a, A, B>(orig: &mut [A]) -> &'a mut [B] {
     }
 }
 
-fn as_u8_slice<'a, A>(orig: &[A]) -> &'a [u8] {
+fn as_bytes<'a, A>(orig: &[A]) -> &'a [u8] {
     as_slice(orig)
 }
 
-fn as_mut_u8_slice<'a, A>(orig: &mut [A]) -> &'a mut [u8] {
+fn as_mut_bytes<'a, A>(orig: &mut [A]) -> &'a mut [u8] {
     as_mut_slice(orig)
+}
+
+without_std! {
+    use core::convert::TryFrom;
+    /// Converts `i32` returned by ESP-IDF native functions into `Result`
+    fn esp_int_into_result(value: i32) -> Result<(), crate::Error> {
+        if value == 0 {
+            Ok(())
+        } else if let Ok(error) = esp_idf::error::EspError::try_from(value) {
+            Err(crate::Error::EspIdf { error })
+        } else {
+            Err(crate::Error::EnumFromIntError {
+                value: value as u32,
+            })
+        }
+    }
+
+    #[macro_export]
+    macro_rules! idf {
+        ($x:expr) => {
+            {
+                let retval = $x;
+                esp_int_into_result(retval)
+            }
+        };
+    }
+
 }
 
 /// The Different types of MATRIX Devices
@@ -66,7 +94,7 @@ mod tests {
     fn as_slice() {
         let i32_array = [0i32; 4];
         let u16_array = [0u16; 4];
-        assert_eq!(as_u8_slice(&i32_array).len(), size_of_val(&i32_array));
-        assert_eq!(as_u8_slice(&u16_array).len(), size_of_val(&u16_array));
+        assert_eq!(as_bytes(&i32_array).len(), size_of_val(&i32_array));
+        assert_eq!(as_bytes(&u16_array).len(), size_of_val(&u16_array));
     }
 }

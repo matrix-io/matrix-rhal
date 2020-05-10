@@ -24,6 +24,8 @@ std = ["nix", "failure"]
 [dependencies]
 failure = {version = "0.1.7", optional = true}
 heapless = "0.5.3"
+libm = "0.2"
+log = "0.4"
 nix = {version = "0.16.1", optional = true}
 typenum = "1.12"
 

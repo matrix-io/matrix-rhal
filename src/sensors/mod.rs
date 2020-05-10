@@ -1,5 +1,5 @@
 use crate::bus::{memory_map::*, MatrixBus};
-use crate::{as_mut_u8_slice, Device};
+use crate::{as_mut_bytes, Device};
 mod data;
 use data::*;
 
@@ -25,7 +25,7 @@ impl<'a> Sensors<'a> {
         let mut data = [0i32; get_buffer_length(UV_BYTES)];
         let address = fpga_address::MCU + (mcu_offset::UV >> 1);
         // populate buffer
-        self.bus.read(address, as_mut_u8_slice(&mut data));
+        self.bus.read(address, as_mut_bytes(&mut data));
         data[0] as f32 / 1000.0
     }
 
@@ -36,7 +36,7 @@ impl<'a> Sensors<'a> {
 
         let address = fpga_address::MCU + (mcu_offset::PRESSURE >> 1);
         // populate buffer
-        self.bus.read(address, as_mut_u8_slice(&mut data));
+        self.bus.read(address, as_mut_bytes(&mut data));
         Pressure {
             pressure: data[1] as f32 / 1000.0,
             altitude: data[0] as f32 / 1000.0,
@@ -50,7 +50,7 @@ impl<'a> Sensors<'a> {
         let mut data = [0i32; get_buffer_length(HUMIDITY_BYTES)];
         let address = fpga_address::MCU + (mcu_offset::HUMIDITY >> 1);
         // populate buffer
-        self.bus.read(address, as_mut_u8_slice(&mut data));
+        self.bus.read(address, as_mut_bytes(&mut data));
         Humidity {
             humidity: data[0] as f32 / 1000.0,
             temperature: data[1] as f32 / 1000.0,
@@ -64,7 +64,7 @@ impl<'a> Sensors<'a> {
 
         let address = fpga_address::MCU + (mcu_offset::IMU >> 1);
         // populate read buffer
-        self.bus.read(address, as_mut_u8_slice(&mut data));
+        self.bus.read(address, as_mut_bytes(&mut data));
 
         Imu {
             accel_x: data[0] as f32 / 1000.0,

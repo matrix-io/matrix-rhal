@@ -1,5 +1,5 @@
 use super::super::MatrixBus;
-use crate::{as_mut_u8_slice, as_u8_slice, bus::memory_map::*, error::Error, Device, info};
+use crate::{as_mut_bytes, as_bytes, bus::memory_map::*, error::Error, Device, info};
 use nix::fcntl::{open, OFlag}; // https://linux.die.net/man/3/open
 use nix::sys::stat::Mode;
 use nix::unistd::close;
@@ -87,11 +87,11 @@ impl MatrixBus for Bus {
                 let mut retval = vec![0i32; ioctl_buffer_i32(write_buffer)];
                 retval[0] = address as i32;
                 retval[1] = write_buffer.len() as i32;
-                as_mut_u8_slice(&mut retval[2..])[..write_buffer.len()].copy_from_slice(write_buffer);
+                as_mut_bytes(&mut retval[2..])[..write_buffer.len()].copy_from_slice(write_buffer);
                 retval
             };
             // TODO: error handling. Not sure if an error here would be worth recovering from.
-            ioctl_write(self.regmap_fd, as_u8_slice(&write_buffer[..])).expect("error in IOCTL WRITE");
+            ioctl_write(self.regmap_fd, as_bytes(&write_buffer[..])).expect("error in IOCTL WRITE");
         }
     }
 
@@ -109,10 +109,10 @@ impl MatrixBus for Bus {
                 retval
             };
             // TODO: error handling. Not sure if an error here would be worth recovering from.
-            ioctl_read(self.regmap_fd, as_mut_u8_slice(&mut buffer[..])).expect("error in IOCTL READ");
+            ioctl_read(self.regmap_fd, as_mut_bytes(&mut buffer[..])).expect("error in IOCTL READ");
             // Copy read data back into original argument buffer
             read_buffer.copy_from_slice(
-                &as_u8_slice(
+                &as_bytes(
                     // Skip address and size words
                     &buffer[2..]
                 )

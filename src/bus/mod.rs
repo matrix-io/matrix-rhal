@@ -67,3 +67,8 @@ pub trait MatrixBus {
     fn device_leds(&self) -> u8;
     fn fpga_frequency(&self) -> u32;
 }
+
+/// `MatrixDriver` in the original HAL.
+pub(crate) trait Driver {
+    fn bus(&self) -> &dyn MatrixBus;
+}
