@@ -9,7 +9,7 @@ readme = "README.md"
 cty = "0.2"
 esp_idf = {version = "0.1", path = "../../esp_idf"}
 esp_idf_logger = {version = "0.1", path = "../../esp_idf_logger"}
-esp-idf-sys = {version = "0.1", path = "../../esp-idf-sys/esp-idf-sys" }
+esp-idf-sys = {package = "esp_idf_dev_sys", version = "0.1", path = "../../esp-idf-sys/esp-idf-sys" }
 log = "0.4"
 matrix_rhal = {version = "0.0.6", path = "../../", default-features = false}
 
