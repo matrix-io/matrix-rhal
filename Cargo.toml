@@ -24,14 +24,16 @@ std = ["nix", "failure"]
 [dependencies]
 failure = {version = "0.1.7", optional = true}
 heapless = "0.5.3"
+libm = "0.2"
+log = "0.4"
 nix = {version = "0.16.1", optional = true}
 typenum = "1.12"
 
 # Dependencies for Matrix Voice w/ ESP32
 [target.'cfg(target_arch = "xtensa")'.dependencies]
 cty = "0.2"
-esp-idf-sys = "0.1.2"
+esp-idf-sys = {package = "esp_idf_dev_sys", version = "0.1", path = "esp-idf-sys/esp-idf-sys" }
+esp_idf = {version = "0.1", path = "esp_idf"}
 failure = {version = "0.1.7", default-features = false, features = ["derive"]}
-lazy_static = {version = "1.4", features = ["spin_no_std"]}
 # TODO: setting #[global_allocator] requires #[alloc_error_handler] which requires nightly
 #esp-idf-alloc = "0.1.1"

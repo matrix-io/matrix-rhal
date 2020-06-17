@@ -1,0 +1,29 @@
+[package]
+name = "esp32_wifi"
+version = "0.1.0"
+authors = []
+edition = "2018"
+readme = "README.md"
+
+[dependencies]
+cty = "0.2"
+esp_idf = {version = "0.1", path = "../../esp_idf"}
+esp_idf_logger = {version = "0.1", path = "../../esp_idf_logger"}
+esp-idf-sys = {package = "esp_idf_dev_sys", version = "0.1", path = "../../esp-idf-sys/esp-idf-sys" }
+log = "0.4"
+matrix_rhal = {version = "0.0.6", path = "../../", default-features = false}
+
+[build-dependencies]
+esp_idf_build = {version = "0.1", path = "../../esp_idf_build"}
+
+[profile.dev]
+#lto = "fat"
+#incremental = false # if enabled, `codegen-units` is ignored
+#codegen-units = 1
+opt-level = "z"
+
+[profile.release]
+lto = "fat"
+#incremental = false # if enabled, `codegen-units` is ignored
+codegen-units = 1
+opt-level = "z"

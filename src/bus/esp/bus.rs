@@ -1,6 +1,5 @@
 use super::*;
-use crate::{bus::memory_map::*, error::Error, Device};
-use core::convert::TryFrom;
+use crate::{*, bus::memory_map::*, error::Error, Device};
 
 #[derive(Debug)]
 pub struct Bus {
@@ -16,7 +15,26 @@ const FPGA_SPI_CS: GpioPin = GpioPin { index: 23 };
 const FPGA_SPI_MOSI: GpioPin = GpioPin { index: 33 };
 const FPGA_SPI_MISO: GpioPin = GpioPin { index: 21 };
 const FPGA_SPI_SCLK: GpioPin = GpioPin { index: 32 };
-const BUFFER_SIZE: usize = 512;
+const SPI_HOST_DEVICE: esp_idf_sys::spi_host_device_t = esp_idf_sys::spi_host_device_t_SPI2_HOST;
+const BUFFER_SIZE: usize = 4096;
+
+// If DMA is enabled for SPI transfers, buffers must 32-bit aligned and 4 byte-multiple 
+// in length for maximum transaction efficiency.
+#[repr(align(32))]
+struct DMABuffer {
+    pub buffer: [u8; BUFFER_SIZE],
+}
+
+impl DMABuffer {
+    const fn create() -> Self {
+        Self {
+            buffer: [0u8; BUFFER_SIZE],
+        }
+    }
+}
+
+static mut G_TX_BUFFER: DMABuffer = DMABuffer::create();
+static mut G_RX_BUFFER: DMABuffer = DMABuffer::create();
 
 impl Bus {
     pub fn init() -> Result<Bus, Error> {
@@ -42,26 +60,24 @@ impl Bus {
                 ..::core::mem::zeroed()
             };
             let retval = esp_idf_sys::spi_bus_initialize(
-                esp_idf_sys::spi_host_device_t_HSPI_HOST,
+                SPI_HOST_DEVICE,
                 &bus_config,
                 1,
             );
             esp_int_into_result(retval)?;
             let mut spi: esp_idf_sys::spi_device_handle_t = core::ptr::null_mut();
             let retval = esp_idf_sys::spi_bus_add_device(
-                esp_idf_sys::spi_host_device_t_HSPI_HOST,
+                SPI_HOST_DEVICE,
                 &device_config,
                 &mut spi,
             );
             esp_int_into_result(retval)?;
-            let mut bus = Bus { spi, fpga_frequency: 0 };
-            bus.fpga_frequency = bus.get_fpga_frequency()?;
+            let mut bus = Bus { spi, ..Default::default() };
+            bus.set_fpga_frequency()?;
             Ok(bus)
         }
     }
-}
 
-impl Bus {
     fn transfer(
         &self,
         send_buffer: &[u8],
@@ -72,8 +88,8 @@ impl Bus {
             // Based on:
             // https://github.com/matrix-io/matrixio_hal_esp32/blob/320c897c0790fc7a0c83201f4f05a11a6c453f25/components/hal/wishbone_bus.cpp#L77
             let mut transaction = esp_idf_sys::spi_transaction_t {
-                length: 8 * size,
-                rxlength: 8 * size,
+                length: 8 * size as u32,
+                rxlength: 8 * size as u32,
                 __bindgen_anon_1: esp_idf_sys::spi_transaction_t__bindgen_ty_1 {
                     tx_buffer: send_buffer.as_ptr() as *const _,
                 },
@@ -88,7 +104,7 @@ impl Bus {
     }
     
     /// Use SPI request to make uncached read of FPGA frequency
-    fn get_fpga_frequency(&self) -> Result<u32, Error> {
+    fn set_fpga_frequency(&mut self) -> Result<(), Error> {
         // Based off:
         // https://github.com/matrix-io/matrixio_hal_esp32/blob/320c897c0790fc7a0c83201f4f05a11a6c453f25/components/hal/wishbone_bus.cpp#L132
         // The original C:
@@ -113,39 +129,46 @@ impl Bus {
             let value1 = data.halfwords[1] as u32;
             (device_info::FPGA_CLOCK * value1) / value0
         };
-        Ok(frequency)
+        self.fpga_frequency = frequency;
+        Ok(())
     }
 
     /// Use SPI to read from `address`, `read_buffer.len()` bytes into `read_buffer`.
     fn read_address(&self, address: u16, read_buffer: &mut [u8]) {
-        let tx_buffer = {
-            let tx_header = spi_address_bytes(address, true);
-            let mut tx_buffer = [0u8; BUFFER_SIZE];
-            tx_buffer[0..HARDWARE_ADDRESS_BYTES].copy_from_slice(&tx_header);
-            tx_buffer
-        };
-        let mut rx_buffer = [0u8; BUFFER_SIZE];
-        self.transfer(&tx_buffer, &mut rx_buffer, read_buffer.len() + HARDWARE_ADDRESS_BYTES).unwrap();
-        for (dst, src) in read_buffer.iter_mut().zip(rx_buffer.iter().skip(HARDWARE_ADDRESS_BYTES)) {
-            *dst = *src;
+        assert!(read_buffer.len() + HARDWARE_ADDRESS_BYTES <= BUFFER_SIZE);
+        let tx_header = spi_address_bytes(address, true);
+        unsafe {
+            G_TX_BUFFER.buffer[0..HARDWARE_ADDRESS_BYTES].copy_from_slice(&tx_header);
+            self.transfer(&G_TX_BUFFER.buffer, &mut G_RX_BUFFER.buffer, read_buffer.len() + HARDWARE_ADDRESS_BYTES).unwrap();
+            for (dst, src) in read_buffer.iter_mut().zip(G_RX_BUFFER.buffer.iter().skip(HARDWARE_ADDRESS_BYTES)) {
+                *dst = *src;
+            }
         }
     }
 
     /// Use SPI to write to `address`, `write_buffer.len()` bytes from `write_buffer`.
     fn write_address(&self, address: u16, write_buffer: &[u8]) {
-        let tx_buffer = {
-            let tx_header = spi_address_bytes(address, false);
-            let mut tx_buffer = [0u8; BUFFER_SIZE];
-            tx_buffer[0..HARDWARE_ADDRESS_BYTES].copy_from_slice(&tx_header);
-            for (dst, src) in tx_buffer.iter_mut().skip(HARDWARE_ADDRESS_BYTES).zip(write_buffer.iter()) {
+        assert!(write_buffer.len() + HARDWARE_ADDRESS_BYTES <= BUFFER_SIZE);
+        let tx_header = spi_address_bytes(address, false);
+        unsafe {
+            G_TX_BUFFER.buffer[0..HARDWARE_ADDRESS_BYTES].copy_from_slice(&tx_header);
+            for (dst, src) in G_TX_BUFFER.buffer.iter_mut().skip(HARDWARE_ADDRESS_BYTES).zip(write_buffer.iter()) {
                 *dst = *src;
             }
-            tx_buffer
-        };
-        let mut rx_buffer = [0u8; BUFFER_SIZE];
-        self.transfer(&tx_buffer, &mut rx_buffer, write_buffer.len() + HARDWARE_ADDRESS_BYTES).unwrap();
+            self.transfer(&G_TX_BUFFER.buffer, &mut G_RX_BUFFER.buffer, write_buffer.len() + HARDWARE_ADDRESS_BYTES).unwrap();
+        }
     }
 }
+
+impl core::default::Default for Bus {
+    fn default() -> Self {
+        Self {
+            spi: core::ptr::null_mut(),
+            fpga_frequency: 0,
+        }
+    }
+}
+
 
 /// Command placed in SPI transmit buffer from the original C version:
 /// ```c
@@ -188,23 +211,23 @@ fn spi_address_bytes(address: u16, readnwrite: bool) -> HardwareAddress {
 }
 
 impl MatrixBus for Bus {
-    fn write(&self, write_buffer: &mut [u8]) {
-        // Unpack the write address from the first 32-bits
-        let buffer_u32 = unsafe { core::intrinsics::transmute::<&mut [u8], &mut [u32]>(write_buffer) };
-        let address = u16::try_from(buffer_u32[0]).unwrap();
-        // Write actual data to the address
-        self.write_address(address, &write_buffer[crate::MATRIXBUS_HEADER_BYTES..])
+    fn write(&self, address: u16, write_buffer: &[u8]) {
+        self.write_address(address, write_buffer)
     }
 
-    fn read(&self, read_buffer: &mut [u8]) {
-        // Unpack the read address from the first 32-bits
-        let buffer_u32 = unsafe { core::intrinsics::transmute::<&mut [u8], &mut [u32]>(read_buffer) };
-        let address = u16::try_from(buffer_u32[0]).unwrap();
-        self.read_address(address, &mut read_buffer[crate::MATRIXBUS_HEADER_BYTES..])
+    fn read(&self, address: u16, read_buffer: &mut [u8]) {
+        self.read_address(address, read_buffer)
     }
 
     fn close(&self) {
-        // Do nothing
+        unsafe {
+            // Unload driver for devices before removing driver for bus
+            let retval = esp_idf_sys::spi_bus_remove_device(self.spi);
+            esp_int_into_result(retval).unwrap();
+            // Remove driver for bus
+            let retval = esp_idf_sys::spi_bus_free(SPI_HOST_DEVICE);
+            esp_int_into_result(retval).unwrap();
+        }   
     }
 
     fn device_name(&self) -> Device {

@@ -1,3 +1,5 @@
+# Link search paths provided by using `esp_idf_build` crate in `build.rs`.
+
 [build]
 target = "xtensa-esp32-none-elf"
 
@@ -6,7 +8,7 @@ rustflags = [
   "-C", "target-cpu=esp32",
   "-C", "save-temps",
   "-C", "link-arg=-nostdlib",
-  "-C", "link-arg=-nostartfiles",
+#  "-C", "link-arg=-nostartfiles",
 
   "-C", "link-arg=-ucall_user_start_cpu0",
 
@@ -30,7 +32,7 @@ rustflags = [
   "-C", "link-arg=-lasio",
   "-C", "link-arg=-lbootloader_support",
   "-C", "link-arg=-lbt",
-  "-C", "link-arg=-lc",
+  "-C", "link-arg=-lc_nano",
   "-C", "link-arg=-lcoap",
   "-C", "link-arg=-lcoexist",
   "-C", "link-arg=-lconsole",
@@ -113,11 +115,12 @@ rustflags = [
   "-C", "link-arg=-Tesp32.rom.syscalls.ld",
   "-C", "link-arg=-Tesp32.rom.newlib-data.ld",
   "-C", "link-arg=-Tesp32.rom.newlib-funcs.ld",
+  "-C", "link-arg=-Tesp32.rom.newlib-nano.ld",
   
   "-C", "link-arg=-Wl,--undefined=uxTopUsedPriority",
 
   "-C", "link-arg=-Wl,--end-group",
   "-C", "link-arg=-Wl,-EL",
   "-C", "link-arg=-fno-rtti",
-  #"-C", "link-arg=-Wl,-Map=build/esp-app.map",
+  "-C", "link-arg=-Wl,-Map=build/esp-app.map",
 ]

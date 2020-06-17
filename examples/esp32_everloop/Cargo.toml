@@ -5,9 +5,11 @@ authors = ["jeikabu <jeikabu@users.noreply.github.com>"]
 edition = "2018"
 
 [dependencies]
-matrix_rhal = {version = "0.0.6", path = "../../", default-features = false}
 cty = "0.2"
-esp-idf-sys = "0.1.2"
+esp_idf_logger = {version = "0.1", path = "../../esp_idf_logger"}
+esp-idf-sys = {version = "0.1", path = "../../esp-idf-sys/esp-idf-sys"}
+log = "0.4"
+matrix_rhal = {version = "0.0.6", path = "../../", default-features = false}
 
 [build-dependencies]
-esp_idf_build = "0.1"
+esp_idf_build = {version = "0.1", path = "../../esp_idf_build"}

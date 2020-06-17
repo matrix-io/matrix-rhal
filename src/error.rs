@@ -18,13 +18,19 @@ pub enum Error {
     #[fail(display = "The GPIO pin selected does not exist. Valid pins are from 0-15")]
     InvalidGpioPin,
 
+    #[fail(display = "Similar to std::io::ErrorKind::InvalidInput")]
+    InvalidInput,
+
     #[fail(display = "Failed to convert value {} to enum", value)]
     EnumFromIntError { value: u32 },
+
+    #[fail(display = "Failed")]
+    Failed,
 
     /// ESP-IDF call failed.
     #[cfg(not(feature = "std"))]
     #[fail(display = "esp-idf error: {}", error)]
-    EspIdf { error: crate::bus::esp::error::EspError },
+    EspIdf { error: esp_idf::error::EspError },
 }
 
 with_std! {

@@ -1,0 +1,24 @@
+[package]
+name = "esp32_mic_energy"
+version = "0.1.0"
+authors = []
+edition = "2018"
+readme = "README.md"
+
+[dependencies]
+cty = "0.2"
+esp_idf_logger = {version = "0.1", path = "../../esp_idf_logger"}
+esp-idf-sys = {package = "esp_idf_dev_sys", version = "0.1", path = "../../esp-idf-sys/esp-idf-sys" }
+log = "0.4"
+matrix_rhal = {version = "0.0.6", path = "../../", default-features = false}
+
+[build-dependencies]
+esp_idf_build = {version = "0.1", path = "../../esp_idf_build" }
+
+# Need set codegen-units to avoid `multiple definition of `__floatsidf'` link error:
+# https://github.com/rust-lang/compiler-builtins/issues/336
+[profile.dev]
+codegen-units=1
+
+[profile.release]
+codegen-units=1

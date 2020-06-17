@@ -14,12 +14,13 @@ fn is_little_endian() -> bool {
 
 #[no_mangle]
 pub fn app_main() {
+    esp_idf_logger::init().unwrap();
     unsafe {
         let bus = matrix_rhal::bus::init();
-
-        esp::ets_printf(
-            b"Little-endian=%d freq=%d\n\0".as_ptr() as *const _,
-            is_little_endian() as u32,
+        
+        log::info!(
+            "Little-endian={} freq={}",
+            is_little_endian(),
             bus.fpga_frequency(),
         );
 

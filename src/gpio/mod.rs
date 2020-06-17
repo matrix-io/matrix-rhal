@@ -1,11 +1,9 @@
-use crate::bus::MatrixBus;
-use crate::Error;
+use crate::bus::{memory_map::*, MatrixBus};
+use crate::{as_mut_bytes, as_bytes, Error};
 pub mod bank;
 pub mod config;
-use crate::bus::memory_map::*;
 pub use bank::*;
 pub use config::*;
-use core::intrinsics::transmute;
 use core::sync::atomic::{AtomicU16, Ordering};
 
 /// Controls the GPIO pins on a MATRIX device.
@@ -56,14 +54,14 @@ impl<'a> Gpio<'a> {
         Gpio::is_pin_valid(pin).unwrap();
 
         // create read buffer
-        let mut data: [u32; 3] = [0; 3];
+        let mut data = [0u16; 1];
 
         // update read buffer
-        self.bus_read(&mut data, 2, 1); // all pin states are encoded as a single u16. 2 bytes needed (8*2 = 16 pins)
+        self.bus_read(&mut data, 1); // all pin states are encoded as a single u16. 2 bytes needed (8*2 = 16 pins)
 
         // bit operation to extract the current pin's state
         let mask = 0x1 << pin;
-        let state = (data[2] & mask) >> pin;
+        let state = (data[0] & mask) >> pin;
 
         match state {
             0 => false,
@@ -78,16 +76,16 @@ impl<'a> Gpio<'a> {
     /// Returns the current digital value of every MATRIX GPIO pin (0->15)
     pub fn get_states(&self) -> [bool; 16] {
         // create read buffer
-        let mut data: [u32; 3] = [0; 3];
+        let mut data = [0u16; 1];
 
         // update read buffer
-        self.bus_read(&mut data, 2, 1); // all pin states are encoded as a single u16. 2 bytes needed (8*2 = 16 pins)
+        self.bus_read(&mut data, 1); // all pin states are encoded as a single u16. 2 bytes needed (8*2 = 16 pins)
 
         // bit operation to extract each pin state (0-15)
         let mut pins: [bool; 16] = [false; 16];
         for i in 0..16 {
             let mask = 0x1 << i;
-            let state = ((data[2] & mask) >> i) as u8;
+            let state = ((data[0] & mask) >> i) as u8;
 
             pins[i] = match state {
                 0 => false,
@@ -102,16 +100,11 @@ impl<'a> Gpio<'a> {
     }
 
     /// Shortener to populate a read buffer, through `bus.read`, for GPIO pin information.
-    fn bus_read(&self, buffer: &mut [u32], buffer_length: u32, address_offset: u16) {
-        // address to query
-        buffer[0] = (fpga_address::GPIO + address_offset) as u32;
-        // size of expected data (bytes)
-        buffer[1] = buffer_length;
-
+    fn bus_read(&self, buffer: &mut [u16], address_offset: u16) {
         // populate buffer
         // the buffer will be passed a value that contains the state of each GPIO pin
         self.bus
-            .read(unsafe { transmute::<&mut [u32], &mut [u8]>(buffer) });
+            .read(fpga_address::GPIO + address_offset, as_mut_bytes(buffer));
     }
 }
 
@@ -150,13 +143,10 @@ impl<'a> Gpio<'a> {
 
     /// Shortener to send pin configurations through `bus.write`.
     fn bus_write(&self, value: u16, address_offset: u16) {
-        let mut buffer: [u32; 3] = [0; 3];
-        buffer[0] = (fpga_address::GPIO + address_offset) as u32; // address to write to
-        buffer[1] = 2; // byte length of u16 value
-        buffer[2] = value as u32;
+        let buffer = [value; 1];
 
         self.bus
-            .write(unsafe { transmute::<&mut [u32], &mut [u8]>(&mut buffer) });
+            .write(fpga_address::GPIO + address_offset, as_bytes(&buffer));
     }
 
     /// Set the prescaler value for a specific bank
